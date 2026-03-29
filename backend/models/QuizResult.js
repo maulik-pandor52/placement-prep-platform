@@ -47,6 +47,18 @@ const companySuggestionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    selectionChance: {
+      type: Number,
+      default: 0,
+    },
+    demandScore: {
+      type: Number,
+      default: 0,
+    },
+    nextMilestone: {
+      type: String,
+      default: "",
+    },
   },
   { _id: false },
 );
@@ -73,6 +85,37 @@ const gapInsightSchema = new mongoose.Schema(
     priority: {
       type: Number,
       default: 1,
+    },
+  },
+  { _id: false },
+);
+
+const weakAreaSchema = new mongoose.Schema(
+  {
+    label: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    type: {
+      type: String,
+      default: "skill",
+    },
+    percentage: {
+      type: Number,
+      default: 0,
+    },
+    severity: {
+      type: String,
+      default: "moderate",
+    },
+    reason: {
+      type: String,
+      default: "",
+    },
+    nextStep: {
+      type: String,
+      default: "",
     },
   },
   { _id: false },
@@ -175,6 +218,18 @@ const quizResultSchema = new mongoose.Schema({
     skillGapAnalysis: {
       type: [gapInsightSchema],
       default: [],
+    },
+    weakAreaDetails: {
+      type: [weakAreaSchema],
+      default: [],
+    },
+    performanceBand: {
+      type: String,
+      default: "Developing",
+    },
+    performanceSummary: {
+      type: String,
+      default: "",
     },
   },
 

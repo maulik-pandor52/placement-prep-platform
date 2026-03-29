@@ -158,6 +158,7 @@ export default function StudentDashboardPage() {
   const latestPoints = latestReport.totalPoints || currentUser?.points || 0;
   const latestBadges = latestReport.badgesEarned || currentUser?.badges || [];
   const readinessGap = latestReport.benchmarkGap || 0;
+  const topCompanyChance = latestReport.companySuggestions?.[0]?.selectionChance || 0;
 
   const chartData = useMemo(
     () => ({
@@ -221,13 +222,14 @@ export default function StudentDashboardPage() {
         <MetricCard title="Points" value={latestPoints} />
       </div>
 
-      <div className="mt-6 grid gap-5 md:grid-cols-3">
+      <div className="mt-6 grid gap-5 md:grid-cols-4">
         <MetricCard title="Readiness Score" value={`${latestReport.readinessScore || 0}%`} />
         <MetricCard title="Readiness Level" value={latestReport.readinessLevel || "Needs Work"} />
         <MetricCard
           title="Benchmark Gap"
           value={`${readinessGap >= 0 ? "+" : ""}${readinessGap}%`}
         />
+        <MetricCard title="Top Company Chance" value={`${topCompanyChance}%`} />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
@@ -341,16 +343,22 @@ export default function StudentDashboardPage() {
               Complete a quiz to see strengths, weaknesses, and tips here.
             </p>
           ) : (
-            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <ChipGroup title="Strengths" items={results[0].report.strengths} tone="green" />
-              <ChipGroup title="Weaknesses" items={results[0].report.weaknesses} tone="orange" />
-              <ChipGroup
-                title="Tips"
-                items={results[0].report.tips}
-                tone="blue"
-                multiline
-              />
-            </div>
+            <>
+              <div className="mt-5 rounded-[24px] border border-sky-100 bg-sky-50/70 px-5 py-4 text-sm leading-7 text-slate-700">
+                {results[0].report.performanceSummary ||
+                  "Complete more performance-based attempts to unlock a clearer summary."}
+              </div>
+              <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <ChipGroup title="Strengths" items={results[0].report.strengths} tone="green" />
+                <ChipGroup title="Weaknesses" items={results[0].report.weaknesses} tone="orange" />
+                <ChipGroup
+                  title="Tips"
+                  items={results[0].report.tips}
+                  tone="blue"
+                  multiline
+                />
+              </div>
+            </>
           )}
         </section>
 
@@ -614,10 +622,18 @@ export default function StudentDashboardPage() {
                   key={company.name}
                   className="rounded-[24px] border border-teal-100 bg-teal-50/70 p-4"
                 >
-                  <div className="text-lg font-semibold text-slate-900">{company.name}</div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-lg font-semibold text-slate-900">{company.name}</div>
+                    <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-teal-700">
+                      {company.selectionChance || 0}% chance
+                    </div>
+                  </div>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     {company.matchReason}
                   </p>
+                  <div className="mt-2 text-sm text-slate-500">
+                    Demand: {company.demandScore || 0}% / {company.nextMilestone || "Keep improving."}
+                  </div>
                   <Link
                     to={`/quiz?company=${encodeURIComponent(company.name)}`}
                     className="primary-btn mt-4"
@@ -667,6 +683,20 @@ export default function StudentDashboardPage() {
           </div>
         </section>
       </div>
+
+      <section className="section-panel mt-6">
+        <h2 className="text-2xl font-black text-slate-900">Weak Area Priority</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {(latestReport.weakAreaDetails?.length ? latestReport.weakAreaDetails : []).map((item) => (
+            <WeakAreaTile key={`${item.type}-${item.label}`} item={item} />
+          ))}
+          {!latestReport.weakAreaDetails?.length ? (
+            <p className="text-sm text-slate-500">
+              Complete a quiz to see prioritized weak areas based on performance.
+            </p>
+          ) : null}
+        </div>
+      </section>
     </StudentLayout>
   );
 }
@@ -750,6 +780,33 @@ function SimpleListCard({ title, items = [], emptyText, tone }) {
             {item}
           </span>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function WeakAreaTile({ item }) {
+  const severityColors = {
+    critical: "border-rose-200 bg-rose-50 text-rose-700",
+    high: "border-orange-200 bg-orange-50 text-orange-700",
+    moderate: "border-amber-200 bg-amber-50 text-amber-700",
+    low: "border-sky-200 bg-sky-50 text-sky-700",
+  };
+
+  return (
+    <div className="rounded-[24px] border border-slate-100 bg-white/80 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="font-semibold text-slate-900">{item.label}</div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${severityColors[item.severity] || severityColors.moderate}`}>
+          {item.severity}
+        </span>
+      </div>
+      <div className="mt-2 text-sm text-slate-500">
+        {item.type} / {item.percentage}%
+      </div>
+      <p className="mt-3 text-sm leading-7 text-slate-600">{item.reason}</p>
+      <div className="mt-3 rounded-[18px] border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700">
+        {item.nextStep}
       </div>
     </div>
   );

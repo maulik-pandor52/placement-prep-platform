@@ -32,6 +32,9 @@ export default function StudentResultPage() {
     improvementRoadmap = [],
     categoryInsights = [],
     skillGapAnalysis = [],
+    weakAreaDetails = [],
+    performanceBand = "Developing",
+    performanceSummary = "",
   } = report;
 
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
@@ -201,8 +204,9 @@ export default function StudentResultPage() {
         </section>
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-4">
+      <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
         <InfoCard title="Performance Level" value={performanceInsight.level} tone={performanceInsight.tone} />
+        <InfoCard title="Performance Band" value={performanceBand} tone="blue" />
         <InfoCard title="Readiness Score" value={`${readinessScore}%`} />
         <InfoCard title="Readiness Level" value={readinessLevel} />
         <InfoCard
@@ -264,6 +268,9 @@ export default function StudentResultPage() {
           <p className="mt-4 text-sm leading-7 text-slate-600">
             {readinessSummary || "Keep practicing to unlock deeper readiness insights."}
           </p>
+          <div className="mt-5 rounded-[24px] border border-sky-100 bg-sky-50/70 px-5 py-4 text-sm leading-7 text-slate-700">
+            {performanceSummary || "Performance-based summary will appear after more attempts."}
+          </div>
           <div className="mt-6 rounded-[24px] border border-slate-100 bg-white/80 p-5">
             <div className="text-sm uppercase tracking-[0.2em] text-slate-500">
               Target Benchmark
@@ -292,8 +299,41 @@ export default function StudentResultPage() {
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
         <ChipPanel title="Strengths" items={report.strengths} tone="green" />
         <ChipPanel title="Weaknesses" items={report.weaknesses} tone="orange" />
-        <ChipPanel title="Company Suggestions" items={report.companySuggestions?.map((item) => item.name)} tone="blue" />
+        <section className="section-panel">
+          <h2 className="text-2xl font-black text-slate-900">Company Suggestions</h2>
+          <div className="mt-5 space-y-3">
+            {(report.companySuggestions?.length ? report.companySuggestions : []).map((item) => (
+              <div key={item.name} className="rounded-[22px] border border-sky-100 bg-sky-50/70 px-4 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-semibold text-slate-900">{item.name}</div>
+                  <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-sky-700">
+                    {item.selectionChance || 0}% chance
+                  </div>
+                </div>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{item.matchReason}</p>
+                <div className="mt-2 text-sm text-slate-500">
+                  Demand: {item.demandScore || 0}% / {item.nextMilestone || "Keep improving core skills."}
+                </div>
+              </div>
+            ))}
+            {!report.companySuggestions?.length ? (
+              <p className="text-sm text-slate-500">No company suggestions yet.</p>
+            ) : null}
+          </div>
+        </section>
       </div>
+
+      <section className="section-panel mt-6">
+        <h2 className="text-2xl font-black text-slate-900">Weak Area Priority</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {(weakAreaDetails.length ? weakAreaDetails : []).map((item) => (
+            <WeakAreaCard key={`${item.type}-${item.label}`} item={item} />
+          ))}
+          {!weakAreaDetails.length ? (
+            <p className="text-sm text-slate-500">Weak areas will appear after more detailed performance data is available.</p>
+          ) : null}
+        </div>
+      </section>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
         <section className="section-panel">
@@ -495,6 +535,31 @@ function BarInsight({ label, value, meta, tone }) {
         />
       </div>
       <div className="mt-2 text-sm text-slate-500">{meta}</div>
+    </div>
+  );
+}
+
+function WeakAreaCard({ item }) {
+  const severityTones = {
+    critical: "border-rose-200 bg-rose-50 text-rose-700",
+    high: "border-orange-200 bg-orange-50 text-orange-700",
+    moderate: "border-amber-200 bg-amber-50 text-amber-700",
+    low: "border-sky-200 bg-sky-50 text-sky-700",
+  };
+
+  return (
+    <div className="rounded-[24px] border border-slate-100 bg-white/80 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="font-semibold text-slate-900">{item.label}</div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${severityTones[item.severity] || severityTones.moderate}`}>
+          {item.severity}
+        </span>
+      </div>
+      <div className="mt-3 text-sm text-slate-500">{item.type} / {item.percentage}%</div>
+      <p className="mt-3 text-sm leading-7 text-slate-600">{item.reason}</p>
+      <div className="mt-3 rounded-[18px] border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700">
+        {item.nextStep}
+      </div>
     </div>
   );
 }

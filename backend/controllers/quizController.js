@@ -150,6 +150,47 @@ const computeCompanyFit = ({ company, skillBreakdown, categoryBreakdown }) => {
   };
 };
 
+const calculateCompanyDemandScore = (company) => {
+  const requiredSkillWeight = (company.requiredSkills || []).reduce(
+    (sum, item) => sum + (item.priority || 1) * 12,
+    0,
+  );
+  const patternWeight = (company.assessmentPattern?.length || 0) * 5;
+  const benchmarkWeight = Math.round((company.benchmarkScore || 70) * 0.35);
+
+  return Math.max(55, Math.min(96, requiredSkillWeight + patternWeight + benchmarkWeight));
+};
+
+const buildWeakAreaDetails = ({ skillBreakdown = [], categoryBreakdown = [] }) => {
+  const toWeakArea = (item, type) => {
+    let severity = "moderate";
+    if (item.percentage < 35) severity = "critical";
+    else if (item.percentage < 50) severity = "high";
+    else if (item.percentage < 65) severity = "moderate";
+    else severity = "low";
+
+    const typeLabel = type === "skill" ? "skill" : "category";
+    return {
+      label: item.label,
+      type: typeLabel,
+      percentage: item.percentage,
+      severity,
+      reason: `${item.label} is at ${item.percentage}% accuracy across ${item.total} question${item.total === 1 ? "" : "s"}.`,
+      nextStep:
+        type === "skill"
+          ? `Practice 8-10 focused questions in ${item.label} before your next full test.`
+          : `Revise ${item.label.toLowerCase()} patterns and retake a short mixed set before the next attempt.`,
+    };
+  };
+
+  return [
+    ...skillBreakdown.filter((item) => item.percentage < 70).map((item) => toWeakArea(item, "skill")),
+    ...categoryBreakdown.filter((item) => item.percentage < 70).map((item) => toWeakArea(item, "category")),
+  ]
+    .sort((a, b) => a.percentage - b.percentage || a.label.localeCompare(b.label))
+    .slice(0, 6);
+};
+
 const calculatePercentile = (sortedValues, value) => {
   if (!sortedValues.length) {
     return 0;
@@ -169,6 +210,7 @@ const buildAdvancedReport = ({
   const categoryBreakdown = report.categoryBreakdown || [];
   const strengths = report.strengths || [];
   const weaknesses = report.weaknesses || [];
+  const weakAreaDetails = buildWeakAreaDetails({ skillBreakdown, categoryBreakdown });
 
   const rankedCompanies = companies
     .map((company) => {
@@ -177,13 +219,27 @@ const buildAdvancedReport = ({
         skillBreakdown,
         categoryBreakdown,
       });
+      const demandScore = calculateCompanyDemandScore(company);
+      const selectionChance = Math.max(
+        5,
+        Math.min(
+          95,
+          Math.round(
+            fit.readinessScore * 0.7 +
+              Math.max(0, fit.benchmarkGap) * 0.15 +
+              (100 - demandScore) * 0.15,
+          ),
+        ),
+      );
 
       return {
         company,
         ...fit,
+        demandScore,
+        selectionChance,
       };
     })
-    .sort((a, b) => b.readinessScore - a.readinessScore || b.benchmarkGap - a.benchmarkGap);
+    .sort((a, b) => b.selectionChance - a.selectionChance || b.readinessScore - a.readinessScore);
 
   const targetCompany =
     rankedCompanies.find(
@@ -200,6 +256,15 @@ const buildAdvancedReport = ({
   if (readinessScore >= 80) readinessLevel = "Interview Ready";
   else if (readinessScore >= 68) readinessLevel = "Almost Ready";
   else if (readinessScore >= 50) readinessLevel = "Developing";
+
+  const performanceBand =
+    readinessScore >= 82
+      ? "High Potential"
+      : readinessScore >= 68
+        ? "Competitive"
+        : readinessScore >= 50
+          ? "Improving"
+          : "Foundation Needed";
 
   const skillGapAnalysis = (targetCompany?.company?.requiredSkills || [])
     .map((requiredSkill) => {
@@ -248,11 +313,22 @@ const buildAdvancedReport = ({
           : entry.company.focusSkills?.slice(0, 3) || [],
     readinessScore: entry.readinessScore,
     benchmarkGap: entry.benchmarkGap,
+    selectionChance: entry.selectionChance,
+    demandScore: entry.demandScore,
+    nextMilestone:
+      entry.benchmarkGap >= 0
+        ? `Maintain your current level and improve consistency for ${entry.company.name}.`
+        : `Raise your score by ${Math.abs(entry.benchmarkGap)}% to meet the ${entry.company.name} benchmark.`,
   }));
 
   const readinessSummary = targetCompany
-    ? `${readinessLevel}: your estimated readiness for ${targetCompany.company.name} is ${readinessScore}% against a benchmark of ${benchmarkScore}%.`
+    ? `${readinessLevel}: your estimated readiness for ${targetCompany.company.name} is ${readinessScore}% against a benchmark of ${benchmarkScore}%, with an estimated ${targetCompany.selectionChance}% selection chance based on current performance and company demand.`
     : `Current readiness is ${readinessScore}%. Keep practicing to improve confidence and company fit.`;
+
+  const performanceSummary =
+    weakAreaDetails[0]
+      ? `${performanceBand}: your strongest gains will come from improving ${weakAreaDetails[0].label}, which is currently at ${weakAreaDetails[0].percentage}%.`
+      : `${performanceBand}: your performance is balanced right now, so focus on maintaining consistency.`;
 
   const baseTips = report.tips || [];
   const combinedTips = [...baseTips];
@@ -279,6 +355,9 @@ const buildAdvancedReport = ({
     improvementRoadmap,
     categoryInsights,
     skillGapAnalysis,
+    weakAreaDetails,
+    performanceBand,
+    performanceSummary,
   };
 };
 
@@ -455,6 +534,9 @@ exports.saveResult = async (req, res) => {
         improvementRoadmap: enrichedReport?.improvementRoadmap || [],
         categoryInsights: enrichedReport?.categoryInsights || [],
         skillGapAnalysis: enrichedReport?.skillGapAnalysis || [],
+        weakAreaDetails: enrichedReport?.weakAreaDetails || [],
+        performanceBand: enrichedReport?.performanceBand || "Developing",
+        performanceSummary: enrichedReport?.performanceSummary || "",
       },
     });
 
