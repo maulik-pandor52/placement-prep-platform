@@ -3,7 +3,9 @@ import { useEffect } from "react";
 import PrepEasyLogo from "./PrepEasyLogo";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard" },
+  { to: "/dashboard", label: "Overview" },
+  { to: "/insights", label: "Insights" },
+  { to: "/opportunities", label: "Opportunities" },
   { to: "/quiz", label: "Quiz" },
   { to: "/result", label: "Results" },
   { to: "/mock-interview", label: "Mock Interview" },
@@ -35,7 +37,7 @@ export default function StudentLayout({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
               <Link to="/dashboard" className="min-w-[220px]">
-                <div className="soft-badge">Prep Platform</div>
+                <div className="soft-badge">PrepEasy Workspace</div>
                 <div className="mt-3">
                   <PrepEasyLogo
                     subtitle="Practice, track progress, and prepare with confidence."
@@ -51,8 +53,8 @@ export default function StudentLayout({
                     className={({ isActive }) =>
                       `rounded-2xl px-4 py-2 text-sm font-semibold transition ${
                         isActive
-                          ? "bg-slate-900 text-white"
-                          : "text-slate-600 hover:bg-white hover:text-slate-900"
+                          ? "bg-gradient-to-r from-violet-500 to-cyan-400 text-slate-950 shadow-lg shadow-violet-500/20"
+                          : "text-slate-300 hover:bg-slate-800/90 hover:text-slate-50"
                       }`
                     }
                   >
@@ -78,7 +80,7 @@ export default function StudentLayout({
         <section className="hero-panel mt-6 overflow-hidden px-6 py-8 sm:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <div className="soft-badge bg-white/12 text-white">Student Workspace</div>
+              <div className="soft-badge">Student Workspace</div>
               <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
                 {title}
               </h1>

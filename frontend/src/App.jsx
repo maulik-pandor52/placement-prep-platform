@@ -5,7 +5,9 @@ import StudentLoginPage from "./pages/StudentLoginPage";
 import StudentRegisterPage from "./pages/StudentRegisterPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminRegister from "./pages/AdminRegister";
-import StudentDashboardPage from "./pages/StudentDashboardPage";
+import StudentOverviewPage from "./pages/StudentOverviewPage";
+import StudentInsightsPage from "./pages/StudentInsightsPage";
+import StudentOpportunitiesPage from "./pages/StudentOpportunitiesPage";
 import StudentQuizPage from "./pages/StudentQuizPage";
 import StudentResultPage from "./pages/StudentResultPage";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -30,7 +32,23 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <StudentDashboardPage />
+              <StudentOverviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/insights"
+          element={
+            <ProtectedRoute>
+              <StudentInsightsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/opportunities"
+          element={
+            <ProtectedRoute>
+              <StudentOpportunitiesPage />
             </ProtectedRoute>
           }
         />

@@ -469,14 +469,14 @@ export default function StudentMockInterviewPage() {
       }
     >
       {error ? (
-        <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+        <div className="mb-6 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-5 py-4 text-sm text-rose-200">
           {error}
         </div>
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Interview Setup</h2>
+          <h2 className="panel-title">Interview Setup</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             <Field label="Company" value={form.company} onChange={(e) => setForm((prev) => ({ ...prev, company: e.target.value }))} />
             <Field label="Role" value={form.role} onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))} />
@@ -508,8 +508,8 @@ export default function StudentMockInterviewPage() {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-teal-100 bg-teal-50/70 p-5">
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-700">
+            <div className="student-tint">
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">
                 Interview Controls
               </div>
               <div className="mt-4 grid gap-3">
@@ -528,7 +528,7 @@ export default function StudentMockInterviewPage() {
                   Stop Camera
                 </button>
               </div>
-              <div className="mt-5 space-y-3 text-sm text-slate-700">
+              <div className="mt-5 space-y-3 text-sm text-slate-200">
                 <div>Question timer: {timeLeft}s</div>
                 <div>Completion: {completion}%</div>
                 <div>Mode: {cameraReady ? "Video interview" : "Text fallback"}</div>
@@ -540,7 +540,7 @@ export default function StudentMockInterviewPage() {
           {questions.length ? (
             <div className="mt-8">
               <div className="mb-4 flex items-center justify-between gap-3">
-                <h3 className="text-xl font-black text-slate-900">Interview Round</h3>
+                <h3 className="text-xl font-black text-slate-100">Interview Round</h3>
                 <span className="soft-badge">
                   Question {activeQuestion + 1} of {questions.length}
                 </span>
@@ -554,8 +554,8 @@ export default function StudentMockInterviewPage() {
                     onClick={() => goToQuestion(index)}
                     className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                       index === activeQuestion
-                        ? "bg-slate-900 text-white"
-                        : "border border-slate-200 bg-white text-slate-700"
+                        ? "bg-gradient-to-r from-violet-500 to-cyan-400 text-slate-950"
+                        : "border border-slate-700/50 bg-slate-900/60 text-slate-300"
                     }`}
                   >
                     {index + 1}. {item.topic}
@@ -563,11 +563,11 @@ export default function StudentMockInterviewPage() {
                 ))}
               </div>
 
-              <div className="rounded-[24px] border border-slate-100 bg-white/80 p-5">
-                <div className="text-sm uppercase tracking-[0.2em] text-teal-700">
+              <div className="student-card">
+                <div className="text-sm uppercase tracking-[0.2em] text-cyan-300">
                   {questions[activeQuestion]?.topic}
                 </div>
-                <p className="mt-3 text-lg font-semibold text-slate-900">
+                <p className="mt-3 text-lg font-semibold text-slate-100">
                   {questions[activeQuestion]?.question}
                 </p>
                 <textarea
@@ -643,15 +643,15 @@ export default function StudentMockInterviewPage() {
               </div>
             </div>
           ) : loading ? (
-            <div className="mt-6 text-sm text-slate-500">Loading interview workspace...</div>
+            <div className="mt-6 text-sm text-slate-400">Loading interview workspace...</div>
           ) : null}
         </section>
 
         <div className="space-y-6">
           <section className="section-panel">
-            <h2 className="text-2xl font-black text-slate-900">Latest Feedback</h2>
+            <h2 className="panel-title">Latest Feedback</h2>
             {!report ? (
-              <p className="mt-4 text-sm text-slate-500">
+              <p className="mt-4 text-sm text-slate-400">
                 Complete an interview round to see your content score, delivery score, and improvement tips.
               </p>
             ) : (
@@ -666,7 +666,7 @@ export default function StudentMockInterviewPage() {
                   <ScoreCard label="Confusion" value={`${report.confusionScore || 0}%`} tone="rose" />
                   <ScoreCard label="Face Tracking" value={report.facialInsights?.faceTrackingSupported ? "On" : "Limited"} tone="slate" />
                 </div>
-                <div className="mt-4 rounded-[24px] border border-slate-100 bg-white/80 px-5 py-4 text-sm leading-7 text-slate-600">
+                <div className="mt-4 student-card text-sm leading-7 text-slate-300">
                   {report.expressionSummary || report.facialInsights?.summary}
                 </div>
                 <FeedbackList title="Strengths" items={report.strengths} tone="green" />
@@ -677,27 +677,24 @@ export default function StudentMockInterviewPage() {
           </section>
 
           <section className="section-panel">
-            <h2 className="text-2xl font-black text-slate-900">Interview History</h2>
+            <h2 className="panel-title">Interview History</h2>
             <div className="mt-5 space-y-3">
               {history.length ? (
                 history.slice(0, 5).map((item) => (
-                  <div
-                    key={item._id}
-                    className="rounded-[22px] border border-slate-100 bg-white/80 px-4 py-3"
-                  >
-                    <div className="font-semibold text-slate-900">
+                  <div key={item._id} className="student-card">
+                    <div className="font-semibold text-slate-100">
                       {item.company || "General"} / {item.role || "Interview"}
                     </div>
-                    <div className="mt-1 text-sm text-slate-500">
+                    <div className="mt-1 text-sm text-slate-400">
                       Skill: {item.skill || "General"} / Mode: {item.interviewMode || "text"}
                     </div>
-                    <div className="mt-1 text-sm text-slate-500">
+                    <div className="mt-1 text-sm text-slate-400">
                       Overall: {item.overallScore}% / Confidence: {item.confidenceScore || 0}%
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No interview sessions yet.</p>
+                <p className="text-sm text-slate-400">No interview sessions yet.</p>
               )}
             </div>
           </section>
@@ -710,7 +707,7 @@ export default function StudentMockInterviewPage() {
 function Field({ label, ...props }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-slate-300">{label}</label>
       <input {...props} className="field-input" />
     </div>
   );
@@ -718,15 +715,15 @@ function Field({ label, ...props }) {
 
 function FeedbackList({ title, items = [], tone }) {
   const tones = {
-    green: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    orange: "border-orange-200 bg-orange-50 text-orange-700",
-    blue: "border-sky-200 bg-sky-50 text-sky-700",
+    green: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+    orange: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+    blue: "border-cyan-300/20 bg-cyan-400/10 text-cyan-300",
   };
   const useCards = title === "Tips";
 
   return (
     <div className="mt-5">
-      <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+      <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
         {title}
       </div>
       {useCards ? (
@@ -758,29 +755,29 @@ function FeedbackList({ title, items = [], tone }) {
 
 function MiniStat({ label, value }) {
   return (
-    <div className="rounded-[20px] border border-slate-100 bg-slate-50 px-4 py-3">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+    <div className="student-card">
+      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
         {label}
       </div>
-      <div className="mt-2 text-lg font-bold text-slate-900">{value}</div>
+      <div className="mt-2 text-lg font-bold text-slate-100">{value}</div>
     </div>
   );
 }
 
 function ScoreCard({ label, value, tone }) {
   const toneClasses = {
-    teal: "border-teal-100 bg-teal-50/70 text-teal-700",
-    sky: "border-sky-100 bg-sky-50/70 text-sky-700",
-    amber: "border-amber-100 bg-amber-50/70 text-amber-700",
-    emerald: "border-emerald-100 bg-emerald-50/70 text-emerald-700",
-    rose: "border-rose-100 bg-rose-50/70 text-rose-700",
-    slate: "border-slate-100 bg-slate-50/70 text-slate-700",
+    teal: "border-cyan-300/20 bg-cyan-400/10 text-cyan-300",
+    sky: "border-violet-400/20 bg-violet-400/10 text-violet-200",
+    amber: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+    emerald: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+    rose: "border-rose-400/20 bg-rose-400/10 text-rose-200",
+    slate: "border-slate-600/30 bg-slate-800/70 text-slate-300",
   };
 
   return (
     <div className={`rounded-[24px] border px-5 py-5 ${toneClasses[tone]}`}>
       <div className="text-sm">{label}</div>
-      <div className="mt-2 text-4xl font-black text-slate-900">{value}</div>
+      <div className="mt-2 text-4xl font-black text-slate-100">{value}</div>
     </div>
   );
 }

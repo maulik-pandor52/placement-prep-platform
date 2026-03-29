@@ -41,15 +41,15 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
+    <div className="admin-canvas px-4 py-10 text-slate-100">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-[2rem] border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-950 to-cyan-950/60 p-10 shadow-2xl">
+        <section className="admin-panel p-10">
           <PrepEasyLogo
             subtitle="Admin control for content, companies, and readiness data."
             textClassName="text-white"
             subtextClassName="text-slate-300"
           />
-          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">
+          <p className="mt-6 text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">
             Admin Access
           </p>
           <h1 className="mt-5 text-5xl font-black leading-tight">
@@ -67,15 +67,15 @@ export default function AdminLogin() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-white p-8 text-slate-900 shadow-2xl">
+        <section className="admin-card p-8 text-slate-100">
           <PrepEasyLogo subtitle="Admin sign in for PrepEasy" compact />
-          <h2 className="text-3xl font-bold">Admin Sign In</h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <h2 className="mt-4 text-3xl font-bold text-white">Admin Sign In</h2>
+          <p className="mt-2 text-sm text-slate-400">
             Sign in with an existing admin account created through invite code or admin access.
           </p>
 
           {error ? (
-            <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="mt-6 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
               {error}
             </div>
           ) : null}
@@ -99,24 +99,24 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
-                loading ? "cursor-wait bg-cyan-400" : "bg-cyan-600 hover:bg-cyan-700"
+              className={`admin-btn w-full ${
+                loading ? "cursor-wait opacity-70" : ""
               }`}
             >
               {loading ? "Signing in..." : "Sign In to Admin"}
             </button>
           </form>
 
-          <div className="mt-6 space-y-3 text-sm text-slate-600">
+          <div className="mt-6 space-y-3 text-sm text-slate-400">
             <p>
               Need an admin account?{" "}
-              <Link to="/admin/register" className="font-semibold text-cyan-700 hover:underline">
+              <Link to="/admin/register" className="font-semibold text-cyan-300 hover:underline">
                 Create admin account
               </Link>
             </p>
             <p>
               Student login:{" "}
-              <Link to="/login" className="font-semibold text-slate-900 hover:underline">
+              <Link to="/login" className="font-semibold text-slate-100 hover:underline">
                 Go to student sign in
               </Link>
             </p>
@@ -130,12 +130,8 @@ export default function AdminLogin() {
 function Field({ label, ...props }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
-      <input
-        {...props}
-        className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-        required
-      />
+      <label className="mb-2 block text-sm font-medium text-slate-200">{label}</label>
+      <input {...props} className="admin-field" required />
     </div>
   );
 }

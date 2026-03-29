@@ -53,30 +53,30 @@ export default function AdminRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f1e8] px-4 py-10">
+    <div className="admin-canvas px-4 py-10">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-        <section className="rounded-[2rem] bg-[#163a2f] p-10 text-white shadow-2xl">
+        <section className="admin-panel p-10 text-white">
           <PrepEasyLogo
             subtitle="Set up protected admin access for PrepEasy."
             textClassName="text-white"
-            subtextClassName="text-emerald-100/80"
+            subtextClassName="text-slate-300"
           />
-          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-emerald-200">
+          <p className="mt-6 text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">
             Admin Signup
           </p>
           <h1 className="mt-5 text-5xl font-black leading-tight">
             Create a protected admin account for the management team.
           </h1>
-          <p className="mt-5 text-lg text-emerald-100/90">
+          <p className="mt-5 text-lg text-slate-300">
             New admins can register here with the shared admin invite code. Once
             created, the account is stored in MongoDB and can sign in normally.
           </p>
 
-          <div className="mt-10 rounded-3xl bg-white/10 p-5">
-            <div className="text-sm uppercase tracking-[0.28em] text-emerald-200">
+          <div className="mt-10 admin-card-muted p-5">
+            <div className="text-sm uppercase tracking-[0.28em] text-cyan-300">
               What you get
             </div>
-            <ul className="mt-4 space-y-3 text-sm text-emerald-50">
+            <ul className="mt-4 space-y-3 text-sm text-slate-200">
               <li>Full CRUD for questions</li>
               <li>Dedicated skill catalog management</li>
               <li>Company profile and focus-skill management</li>
@@ -84,21 +84,21 @@ export default function AdminRegister() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-white p-8 shadow-2xl">
+        <section className="admin-card p-8">
           <PrepEasyLogo subtitle="Create an admin account" compact />
-          <h2 className="text-3xl font-bold text-slate-900">Create Admin Account</h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <h2 className="mt-4 text-3xl font-bold text-white">Create Admin Account</h2>
+          <p className="mt-2 text-sm text-slate-400">
             Enter your admin details and the valid invite code.
           </p>
 
           {error ? (
-            <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="mt-6 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
               {error}
             </div>
           ) : null}
 
           {success ? (
-            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div className="mt-6 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
               {success}
             </div>
           ) : null}
@@ -139,24 +139,24 @@ export default function AdminRegister() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
-                loading ? "cursor-wait bg-emerald-400" : "bg-emerald-600 hover:bg-emerald-700"
+              className={`admin-btn w-full ${
+                loading ? "cursor-wait opacity-70" : ""
               }`}
             >
               {loading ? "Creating account..." : "Create Admin Account"}
             </button>
           </form>
 
-          <div className="mt-6 space-y-3 text-sm text-slate-600">
+          <div className="mt-6 space-y-3 text-sm text-slate-400">
             <p>
               Already have admin access?{" "}
-              <Link to="/admin/login" className="font-semibold text-emerald-700 hover:underline">
+              <Link to="/admin/login" className="font-semibold text-cyan-300 hover:underline">
                 Sign in
               </Link>
             </p>
             <p>
               Student registration:{" "}
-              <Link to="/register" className="font-semibold text-slate-900 hover:underline">
+              <Link to="/register" className="font-semibold text-slate-100 hover:underline">
                 Go to student signup
               </Link>
             </p>
@@ -170,12 +170,8 @@ export default function AdminRegister() {
 function Field({ label, ...props }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
-      <input
-        {...props}
-        className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-        required
-      />
+      <label className="mb-2 block text-sm font-medium text-slate-200">{label}</label>
+      <input {...props} className="admin-field" required />
     </div>
   );
 }

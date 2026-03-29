@@ -163,16 +163,16 @@ export default function StudentResultPage() {
             {testType === "company" && company ? `${company} test` : "Initial test"}
           </div>
           <div className="mt-6 flex flex-wrap items-end gap-4">
-            <div className="text-6xl font-black text-slate-900">
+            <div className="text-6xl font-black text-slate-100">
               {score}
               <span className="text-3xl font-semibold text-slate-400"> / {total}</span>
             </div>
-            <div className="rounded-full bg-teal-50 px-4 py-2 text-lg font-semibold text-teal-700">
+            <div className="student-chip px-4 py-2 text-lg">
               {percentage}%
             </div>
           </div>
-          <h2 className="mt-5 text-3xl font-black text-slate-900">{status}</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+          <h2 className="mt-5 text-3xl font-black text-slate-100">{status}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
             {performanceInsight.summary}
           </p>
 
@@ -183,12 +183,12 @@ export default function StudentResultPage() {
         </section>
 
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Badges and Tips</h2>
+          <h2 className="panel-title">Badges and Tips</h2>
           <div className="mt-5 flex flex-wrap gap-2">
             {(report.badgesEarned?.length ? report.badgesEarned : ["No new badge this time"]).map((item) => (
               <span
                 key={item}
-                className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800"
+                className="student-chip"
               >
                 {item}
               </span>
@@ -196,7 +196,7 @@ export default function StudentResultPage() {
           </div>
           <div className="mt-6 space-y-3">
             {(report.tips?.length ? report.tips : ["Review the report and try again."]).map((tip) => (
-              <div key={tip} className="rounded-[22px] border border-sky-100 bg-sky-50/70 px-4 py-3 text-sm text-slate-700">
+              <div key={tip} className="student-card text-sm text-slate-300">
                 {tip}
               </div>
             ))}
@@ -217,7 +217,7 @@ export default function StudentResultPage() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Progress Check</h2>
+          <h2 className="panel-title">Progress Check</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             <InfoCard title="Current Score" value={`${percentage}%`} />
             <InfoCard
@@ -240,7 +240,7 @@ export default function StudentResultPage() {
               }
             />
           </div>
-          <div className="mt-5 rounded-[24px] border border-slate-100 bg-white/80 px-5 py-4 text-sm leading-7 text-slate-600">
+          <div className="mt-5 student-card text-sm leading-7 text-slate-300">
             {changeFromPrevious === null
               ? "This looks like your first comparable saved attempt, so use it as your new baseline."
               : changeFromPrevious >= 0
@@ -250,8 +250,8 @@ export default function StudentResultPage() {
         </section>
 
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Best Next Move</h2>
-          <div className="mt-5 rounded-[24px] border border-teal-100 bg-teal-50/70 px-5 py-4 text-sm leading-7 text-slate-700">
+          <h2 className="panel-title">Best Next Move</h2>
+          <div className="mt-5 student-tint text-sm leading-7 text-slate-200">
             {performanceInsight.nextMove}
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
@@ -264,31 +264,28 @@ export default function StudentResultPage() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Readiness Summary</h2>
-          <p className="mt-4 text-sm leading-7 text-slate-600">
+          <h2 className="panel-title">Readiness Summary</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-300">
             {readinessSummary || "Keep practicing to unlock deeper readiness insights."}
           </p>
-          <div className="mt-5 rounded-[24px] border border-sky-100 bg-sky-50/70 px-5 py-4 text-sm leading-7 text-slate-700">
+          <div className="mt-5 student-card text-sm leading-7 text-slate-300">
             {performanceSummary || "Performance-based summary will appear after more attempts."}
           </div>
-          <div className="mt-6 rounded-[24px] border border-slate-100 bg-white/80 p-5">
-            <div className="text-sm uppercase tracking-[0.2em] text-slate-500">
+          <div className="mt-6 student-card">
+            <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
               Target Benchmark
             </div>
-            <div className="mt-3 text-4xl font-black text-slate-900">
+            <div className="mt-3 text-4xl font-black text-slate-100">
               {benchmarkScore}%
             </div>
           </div>
         </section>
 
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Improvement Roadmap</h2>
+          <h2 className="panel-title">Improvement Roadmap</h2>
           <div className="mt-5 space-y-3">
             {(improvementRoadmap.length ? improvementRoadmap : ["No roadmap yet."]).map((item) => (
-              <div
-                key={item}
-                className="rounded-[22px] border border-teal-100 bg-teal-50/70 px-4 py-3 text-sm leading-7 text-slate-700"
-              >
+              <div key={item} className="student-card text-sm leading-7 text-slate-300">
                 {item}
               </div>
             ))}
@@ -300,44 +297,44 @@ export default function StudentResultPage() {
         <ChipPanel title="Strengths" items={report.strengths} tone="green" />
         <ChipPanel title="Weaknesses" items={report.weaknesses} tone="orange" />
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Company Suggestions</h2>
+          <h2 className="panel-title">Company Suggestions</h2>
           <div className="mt-5 space-y-3">
             {(report.companySuggestions?.length ? report.companySuggestions : []).map((item) => (
-              <div key={item.name} className="rounded-[22px] border border-sky-100 bg-sky-50/70 px-4 py-4">
+              <div key={item.name} className="student-card">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-semibold text-slate-900">{item.name}</div>
-                  <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-sky-700">
+                  <div className="font-semibold text-slate-100">{item.name}</div>
+                  <div className="student-chip">
                     {item.selectionChance || 0}% chance
                   </div>
                 </div>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{item.matchReason}</p>
-                <div className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm leading-7 text-slate-300">{item.matchReason}</p>
+                <div className="mt-2 text-sm text-slate-400">
                   Demand: {item.demandScore || 0}% / {item.nextMilestone || "Keep improving core skills."}
                 </div>
               </div>
             ))}
             {!report.companySuggestions?.length ? (
-              <p className="text-sm text-slate-500">No company suggestions yet.</p>
+              <p className="text-sm text-slate-400">No company suggestions yet.</p>
             ) : null}
           </div>
         </section>
       </div>
 
       <section className="section-panel mt-6">
-        <h2 className="text-2xl font-black text-slate-900">Weak Area Priority</h2>
+        <h2 className="panel-title">Weak Area Priority</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(weakAreaDetails.length ? weakAreaDetails : []).map((item) => (
             <WeakAreaCard key={`${item.type}-${item.label}`} item={item} />
           ))}
           {!weakAreaDetails.length ? (
-            <p className="text-sm text-slate-500">Weak areas will appear after more detailed performance data is available.</p>
+            <p className="text-sm text-slate-400">Weak areas will appear after more detailed performance data is available.</p>
           ) : null}
         </div>
       </section>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Skill Performance</h2>
+          <h2 className="panel-title">Skill Performance</h2>
           <div className="mt-5 space-y-4">
             {(report.skillBreakdown?.length ? report.skillBreakdown : []).map((item) => (
               <BarInsight
@@ -349,13 +346,13 @@ export default function StudentResultPage() {
               />
             ))}
             {!report.skillBreakdown?.length ? (
-              <p className="text-sm text-slate-500">No skill performance data yet.</p>
+              <p className="text-sm text-slate-400">No skill performance data yet.</p>
             ) : null}
           </div>
         </section>
 
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Category Performance</h2>
+          <h2 className="panel-title">Category Performance</h2>
           <div className="mt-5 space-y-4">
             {(report.categoryBreakdown?.length ? report.categoryBreakdown : []).map((item) => (
               <BarInsight
@@ -367,7 +364,7 @@ export default function StudentResultPage() {
               />
             ))}
             {!report.categoryBreakdown?.length ? (
-              <p className="text-sm text-slate-500">No category performance data yet.</p>
+              <p className="text-sm text-slate-400">No category performance data yet.</p>
             ) : null}
           </div>
         </section>
@@ -375,7 +372,7 @@ export default function StudentResultPage() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Skill Gap Analysis</h2>
+          <h2 className="panel-title">Skill Gap Analysis</h2>
           <div className="mt-5 space-y-4">
             {skillGapAnalysis.length ? (
               skillGapAnalysis.map((item) => (
@@ -398,19 +395,16 @@ export default function StudentResultPage() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500">No skill-gap data yet.</p>
+              <p className="text-sm text-slate-400">No skill-gap data yet.</p>
             )}
           </div>
         </section>
 
         <section className="section-panel">
-          <h2 className="text-2xl font-black text-slate-900">Category Insights</h2>
+          <h2 className="panel-title">Category Insights</h2>
           <div className="mt-5 space-y-3">
             {(categoryInsights.length ? categoryInsights : ["No category insights yet."]).map((item) => (
-              <div
-                key={item}
-                className="rounded-[22px] border border-sky-100 bg-sky-50/70 px-4 py-3 text-sm leading-7 text-slate-700"
-              >
+              <div key={item} className="student-card text-sm leading-7 text-slate-300">
                 {item}
               </div>
             ))}
@@ -420,7 +414,7 @@ export default function StudentResultPage() {
 
       <section className="section-panel mt-6">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-black text-slate-900">All Results</h2>
+          <h2 className="panel-title">All Results</h2>
           <Link to="/dashboard" className="secondary-btn">
             Back to Dashboard
           </Link>
@@ -430,17 +424,17 @@ export default function StudentResultPage() {
             results.map((item) => (
               <div
                 key={item._id}
-                className="rounded-[24px] border border-slate-100 bg-white/80 p-5"
+                className="student-card"
               >
-                <div className="text-2xl font-black text-slate-900">
+                <div className="text-2xl font-black text-slate-100">
                   {item.score}/{item.total}
                 </div>
-                <div className="mt-2 text-sm text-slate-500">
+                <div className="mt-2 text-sm text-slate-400">
                   {item.testType === "company" && item.company
                     ? `${item.company} test`
                     : "Initial test"}
                 </div>
-                <div className="mt-4 text-sm text-slate-500">
+                <div className="mt-4 text-sm text-slate-400">
                   {item.createdAt
                     ? new Date(item.createdAt).toLocaleString("en-IN", {
                         day: "numeric",
@@ -454,7 +448,7 @@ export default function StudentResultPage() {
               </div>
             ))
           ) : (
-            <p className="text-sm text-slate-500">No saved attempts yet.</p>
+            <p className="text-sm text-slate-400">No saved attempts yet.</p>
           )}
         </div>
       </section>
@@ -464,32 +458,32 @@ export default function StudentResultPage() {
 
 function InfoCard({ title, value, tone = "teal" }) {
   const tones = {
-    teal: "border-teal-100 bg-teal-50/70 text-teal-700",
-    green: "border-emerald-100 bg-emerald-50/70 text-emerald-700",
-    orange: "border-orange-100 bg-orange-50/70 text-orange-700",
-    blue: "border-sky-100 bg-sky-50/70 text-sky-700",
-    rose: "border-rose-100 bg-rose-50/70 text-rose-700",
-    amber: "border-amber-100 bg-amber-50/70 text-amber-700",
+    teal: "border-cyan-300/20 bg-cyan-400/10 text-cyan-300",
+    green: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+    orange: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+    blue: "border-violet-400/20 bg-violet-400/10 text-violet-200",
+    rose: "border-rose-400/20 bg-rose-400/10 text-rose-200",
+    amber: "border-amber-400/20 bg-amber-400/10 text-amber-300",
   };
 
   return (
     <div className={`rounded-[24px] border px-5 py-4 ${tones[tone]}`}>
       <div className="text-sm">{title}</div>
-      <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
+      <div className="mt-2 text-3xl font-black text-slate-100">{value}</div>
     </div>
   );
 }
 
 function ChipPanel({ title, items = [], tone }) {
   const tones = {
-    green: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    orange: "border-orange-200 bg-orange-50 text-orange-700",
-    blue: "border-sky-200 bg-sky-50 text-sky-700",
+    green: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+    orange: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+    blue: "border-cyan-300/20 bg-cyan-400/10 text-cyan-300",
   };
 
   return (
     <section className="section-panel">
-      <h2 className="text-2xl font-black text-slate-900">{title}</h2>
+      <h2 className="panel-title">{title}</h2>
       <div className="mt-5 flex flex-wrap gap-2">
         {(items?.length ? items : ["No items yet"]).map((item) => (
           <span
@@ -506,11 +500,11 @@ function ChipPanel({ title, items = [], tone }) {
 
 function ActionInsight({ title, text }) {
   return (
-    <div className="rounded-[24px] border border-slate-100 bg-white/80 p-4">
-      <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+    <div className="student-card">
+      <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
         {title}
       </div>
-      <p className="mt-3 text-sm leading-7 text-slate-600">{text}</p>
+      <p className="mt-3 text-sm leading-7 text-slate-300">{text}</p>
     </div>
   );
 }
@@ -525,39 +519,39 @@ function BarInsight({ label, value, meta, tone }) {
   return (
     <div>
       <div className="mb-2 flex items-center justify-between text-sm">
-        <span className="font-semibold text-slate-800">{label}</span>
-        <span className="text-slate-500">{value}%</span>
+        <span className="font-semibold text-slate-200">{label}</span>
+        <span className="text-slate-400">{value}%</span>
       </div>
-      <div className="h-3 rounded-full bg-slate-100">
+      <div className="student-progress">
         <div
           className={`h-3 rounded-full ${tones[tone]}`}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
-      <div className="mt-2 text-sm text-slate-500">{meta}</div>
+      <div className="mt-2 text-sm text-slate-400">{meta}</div>
     </div>
   );
 }
 
 function WeakAreaCard({ item }) {
   const severityTones = {
-    critical: "border-rose-200 bg-rose-50 text-rose-700",
-    high: "border-orange-200 bg-orange-50 text-orange-700",
-    moderate: "border-amber-200 bg-amber-50 text-amber-700",
-    low: "border-sky-200 bg-sky-50 text-sky-700",
+    critical: "border-rose-400/20 bg-rose-400/10 text-rose-200",
+    high: "border-orange-400/20 bg-orange-400/10 text-orange-200",
+    moderate: "border-amber-400/20 bg-amber-400/10 text-amber-200",
+    low: "border-cyan-300/20 bg-cyan-400/10 text-cyan-200",
   };
 
   return (
-    <div className="rounded-[24px] border border-slate-100 bg-white/80 p-4">
+    <div className="student-card">
       <div className="flex items-center justify-between gap-3">
-        <div className="font-semibold text-slate-900">{item.label}</div>
+        <div className="font-semibold text-slate-100">{item.label}</div>
         <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${severityTones[item.severity] || severityTones.moderate}`}>
           {item.severity}
         </span>
       </div>
-      <div className="mt-3 text-sm text-slate-500">{item.type} / {item.percentage}%</div>
-      <p className="mt-3 text-sm leading-7 text-slate-600">{item.reason}</p>
-      <div className="mt-3 rounded-[18px] border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700">
+      <div className="mt-3 text-sm text-slate-400">{item.type} / {item.percentage}%</div>
+      <p className="mt-3 text-sm leading-7 text-slate-300">{item.reason}</p>
+      <div className="mt-3 rounded-[18px] border border-slate-700/50 px-4 py-3 text-sm leading-7 text-slate-200">
         {item.nextStep}
       </div>
     </div>

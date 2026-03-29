@@ -201,23 +201,23 @@ export default function AdminQuestions() {
       {success ? <Notice tone="success">{success}</Notice> : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_1.2fr]">
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
+        <section className="admin-card p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-slate-900">
+            <h3 className="text-xl font-semibold text-white">
               {editingId ? "Edit Question" : "Add Question"}
             </h3>
             <div className="flex items-center gap-3">
               <button
                 onClick={fillCompanyDraft}
                 type="button"
-                className="rounded-xl border border-cyan-200 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
+                className="rounded-xl border border-cyan-400/20 px-4 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-400/10"
               >
                 Generate Company Draft
               </button>
               {editingId ? (
                 <button
                   onClick={resetForm}
-                  className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                  className="text-sm font-medium text-slate-400 hover:text-white"
                 >
                   Cancel edit
                 </button>
@@ -227,7 +227,7 @@ export default function AdminQuestions() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-sm font-medium text-slate-200">
                 Question
               </label>
               <textarea
@@ -236,7 +236,7 @@ export default function AdminQuestions() {
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, question: e.target.value }))
                 }
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                className="admin-field min-h-[110px]"
                 required
               />
             </div>
@@ -244,13 +244,13 @@ export default function AdminQuestions() {
             <div className="grid gap-4 md:grid-cols-2">
               {form.options.map((option, index) => (
                 <div key={index}>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-200">
                     Option {index + 1}
                   </label>
                   <input
                     value={option}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                    className="admin-field"
                     required={index < 2}
                   />
                 </div>
@@ -318,7 +318,7 @@ export default function AdminQuestions() {
             />
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-sm font-medium text-slate-200">
                 Scenario Context
               </label>
               <textarea
@@ -327,7 +327,7 @@ export default function AdminQuestions() {
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, scenarioContext: e.target.value }))
                 }
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                className="admin-field min-h-[110px]"
               />
             </div>
 
@@ -355,8 +355,8 @@ export default function AdminQuestions() {
             <button
               type="submit"
               disabled={saving}
-              className={`rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
-                saving ? "cursor-wait bg-cyan-400" : "bg-cyan-600 hover:bg-cyan-700"
+              className={`admin-btn ${
+                saving ? "cursor-wait opacity-70" : ""
               }`}
             >
               {saving
@@ -370,19 +370,16 @@ export default function AdminQuestions() {
           </form>
         </section>
 
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-900">Question Bank</h3>
+        <section className="admin-card p-6">
+          <h3 className="text-xl font-semibold text-white">Question Bank</h3>
           {loading ? (
-            <p className="mt-4 text-slate-600">Loading questions...</p>
+            <p className="mt-4 text-slate-400">Loading questions...</p>
           ) : (
             <div className="mt-4 space-y-4">
               {questions.map((item) => (
-                <div
-                  key={item._id}
-                  className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                >
-                  <div className="font-medium text-slate-900">{item.question}</div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+                <div key={item._id} className="admin-card-muted p-4">
+                  <div className="font-medium text-white">{item.question}</div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
                     <Tag label={`Skill: ${item.skill}`} />
                     <Tag label={`Category: ${item.category}`} />
                     {item.company ? <Tag label={`Company: ${item.company}`} /> : null}
@@ -391,16 +388,16 @@ export default function AdminQuestions() {
                     <Tag label={`Answer: ${item.answer}`} />
                   </div>
                   {item.scenarioContext ? (
-                    <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
+                    <p className="mt-3 rounded-2xl bg-slate-950/50 px-4 py-3 text-sm text-slate-300">
                       {item.scenarioContext}
                     </p>
                   ) : null}
                   {item.sourceLabel ? (
-                    <div className="mt-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+                    <div className="mt-2 text-xs uppercase tracking-[0.2em] text-slate-500">
                       {item.sourceLabel}
                     </div>
                   ) : null}
-                  <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+                  <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-300">
                     {item.options.map((option, index) => (
                       <li key={`${item._id}-${index}`}>{option}</li>
                     ))}
@@ -408,13 +405,13 @@ export default function AdminQuestions() {
                   <div className="mt-4 flex gap-3">
                     <button
                       onClick={() => handleEdit(item)}
-                      className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                      className="rounded-xl bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium text-slate-950 transition hover:brightness-105"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(item._id)}
-                      className="rounded-xl border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
+                      className="rounded-xl border border-rose-400/20 px-4 py-2 text-sm font-medium text-rose-200 transition hover:bg-rose-400/10"
                     >
                       Delete
                     </button>
@@ -432,25 +429,21 @@ export default function AdminQuestions() {
 function FormInput({ label, required = true, ...props }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
-      <input
-        {...props}
-        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-        required={required}
-      />
+      <label className="mb-2 block text-sm font-medium text-slate-200">{label}</label>
+      <input {...props} className="admin-field" required={required} />
     </div>
   );
 }
 
 function Tag({ label }) {
-  return <span className="rounded-full bg-white px-3 py-1">{label}</span>;
+  return <span className="admin-badge">{label}</span>;
 }
 
 function Notice({ children, tone }) {
   const styles =
     tone === "success"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : "border-rose-200 bg-rose-50 text-rose-700";
+      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+      : "border-rose-400/20 bg-rose-400/10 text-rose-200";
 
   return (
     <div className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${styles}`}>

@@ -1,7 +1,7 @@
 export default function PrepEasyLogo({
   subtitle,
-  textClassName = "text-slate-900",
-  subtextClassName = "text-slate-500",
+  textClassName = "text-slate-100",
+  subtextClassName = "text-slate-400",
   compact = false,
 }) {
   const isMono = textClassName.includes("text-white");
@@ -19,8 +19,8 @@ export default function PrepEasyLogo({
             "PrepEasy"
           ) : (
             <>
-              <span className="text-[#2F80ED]">Prep</span>
-              <span className="text-[#18B7B0]">Easy</span>
+              <span className="text-[#A78BFA]">Prep</span>
+              <span className="text-[#22D3EE]">Easy</span>
             </>
           )}
         </div>

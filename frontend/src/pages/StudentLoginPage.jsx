@@ -68,7 +68,7 @@ export default function StudentLoginPage() {
               textClassName="text-white"
               subtextClassName="text-slate-100/80"
             />
-            <div className="soft-badge bg-white/12 text-white">Student Login</div>
+            <div className="soft-badge">Student Login</div>
             <h1 className="mt-5 text-5xl font-black leading-tight">
               Prepare with a platform that feels focused, modern, and easy to use.
             </h1>
@@ -90,13 +90,13 @@ export default function StudentLoginPage() {
               compact
             />
             <div className="soft-badge">Welcome Back</div>
-            <h2 className="mt-4 text-3xl font-black text-slate-900">Sign in to continue</h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <h2 className="mt-4 text-3xl font-black text-slate-100">Sign in to continue</h2>
+            <p className="mt-2 text-sm text-slate-400">
               Use your student account to open your dashboard and resume practice.
             </p>
 
             {error ? (
-              <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <div className="mt-6 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
                 {error}
               </div>
             ) : null}
@@ -130,16 +130,16 @@ export default function StudentLoginPage() {
               </button>
             </form>
 
-            <div className="mt-6 space-y-3 text-sm text-slate-600">
+            <div className="mt-6 space-y-3 text-sm text-slate-400">
               <p>
                 Don&apos;t have an account?{" "}
-                <Link to="/register" className="font-semibold text-teal-700 hover:underline">
+                <Link to="/register" className="font-semibold text-cyan-300 hover:underline">
                   Create one now
                 </Link>
               </p>
               <p>
                 Admin access?{" "}
-                <Link to="/admin/login" className="font-semibold text-slate-900 hover:underline">
+                <Link to="/admin/login" className="font-semibold text-slate-100 hover:underline">
                   Go to admin sign in
                 </Link>
               </p>
@@ -154,7 +154,7 @@ export default function StudentLoginPage() {
 function Field({ label, ...props }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-slate-300">{label}</label>
       <input {...props} className="field-input" required />
     </div>
   );

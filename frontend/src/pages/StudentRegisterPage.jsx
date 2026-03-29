@@ -78,16 +78,16 @@ export default function StudentRegisterPage() {
               compact
             />
             <div className="soft-badge">Create Account</div>
-            <h1 className="mt-4 text-3xl font-black text-slate-900">
+            <h1 className="mt-4 text-3xl font-black text-slate-100">
               Start your placement preparation in a workspace built for momentum.
             </h1>
-            <p className="mt-3 text-sm leading-7 text-slate-500">
+            <p className="mt-3 text-sm leading-7 text-slate-400">
               Create your student account to take quizzes, receive performance
               reports, unlock rewards, and prepare for company-specific tests.
             </p>
 
             {error ? (
-              <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <div className="mt-6 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
                 {error}
               </div>
             ) : null}
@@ -112,7 +112,7 @@ export default function StudentRegisterPage() {
               />
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
+                <label className="mb-2 block text-sm font-medium text-slate-300">
                   Password
                 </label>
                 <div className="relative">
@@ -129,7 +129,7 @@ export default function StudentRegisterPage() {
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-4 text-sm font-semibold text-slate-500 hover:text-slate-900"
+                    className="absolute inset-y-0 right-4 text-sm font-semibold text-slate-400 hover:text-slate-100"
                     onClick={() => setShowPassword((prev) => !prev)}
                   >
                     {showPassword ? "Hide" : "Show"}
@@ -148,16 +148,16 @@ export default function StudentRegisterPage() {
               </button>
             </form>
 
-            <div className="mt-6 space-y-3 text-sm text-slate-600">
+            <div className="mt-6 space-y-3 text-sm text-slate-400">
               <p>
                 Already have an account?{" "}
-                <Link to="/login" className="font-semibold text-teal-700 hover:underline">
+                <Link to="/login" className="font-semibold text-cyan-300 hover:underline">
                   Sign in
                 </Link>
               </p>
               <p>
                 Admin onboarding?{" "}
-                <Link to="/admin/register" className="font-semibold text-slate-900 hover:underline">
+                <Link to="/admin/register" className="font-semibold text-slate-100 hover:underline">
                   Open admin signup
                 </Link>
               </p>
@@ -170,7 +170,7 @@ export default function StudentRegisterPage() {
               textClassName="text-white"
               subtextClassName="text-slate-100/80"
             />
-            <div className="soft-badge bg-white/12 text-white">Why Students Like It</div>
+            <div className="soft-badge">Why Students Like It</div>
             <h2 className="mt-5 text-5xl font-black leading-tight">
               One platform for practice, tracking, and interview preparation.
             </h2>
@@ -198,7 +198,7 @@ export default function StudentRegisterPage() {
 function Field({ label, ...props }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-slate-300">{label}</label>
       <input {...props} className="field-input" required />
     </div>
   );

@@ -111,15 +111,15 @@ export default function AdminSkills() {
       {success ? <Notice tone="success">{success}</Notice> : null}
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
+        <section className="admin-card p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-slate-900">
+            <h3 className="text-xl font-semibold text-white">
               {editingId ? "Edit Skill" : "Add Skill"}
             </h3>
             {editingId ? (
               <button
                 onClick={resetForm}
-                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                className="text-sm font-medium text-slate-400 hover:text-white"
               >
                 Cancel edit
               </button>
@@ -140,7 +140,7 @@ export default function AdminSkills() {
               }
             />
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-sm font-medium text-slate-200">
                 Description
               </label>
               <textarea
@@ -149,15 +149,15 @@ export default function AdminSkills() {
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, description: e.target.value }))
                 }
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                className="admin-field min-h-[120px]"
               />
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className={`rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
-                saving ? "cursor-wait bg-cyan-400" : "bg-cyan-600 hover:bg-cyan-700"
+              className={`admin-btn ${
+                saving ? "cursor-wait opacity-70" : ""
               }`}
             >
               {saving
@@ -171,21 +171,18 @@ export default function AdminSkills() {
           </form>
         </section>
 
-        <section className="rounded-3xl bg-white p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-900">Skill Catalog</h3>
+        <section className="admin-card p-6">
+          <h3 className="text-xl font-semibold text-white">Skill Catalog</h3>
           {loading ? (
-            <p className="mt-4 text-slate-600">Loading skills...</p>
+            <p className="mt-4 text-slate-400">Loading skills...</p>
           ) : (
             <div className="mt-4 space-y-4">
               {skills.map((item) => (
-                <div
-                  key={item._id}
-                  className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                >
+                <div key={item._id} className="admin-card-muted p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <div className="text-lg font-semibold text-slate-900">{item.name}</div>
-                      <div className="mt-1 text-sm text-cyan-700">{item.category}</div>
+                      <div className="text-lg font-semibold text-white">{item.name}</div>
+                      <div className="mt-1 text-sm text-cyan-300">{item.category}</div>
                     </div>
                     <div className="flex gap-3">
                       <button
@@ -199,19 +196,19 @@ export default function AdminSkills() {
                           setError("");
                           setSuccess("");
                         }}
-                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                        className="rounded-xl bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium text-slate-950 transition hover:brightness-105"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(item._id)}
-                        className="rounded-xl border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
+                        className="rounded-xl border border-rose-400/20 px-4 py-2 text-sm font-medium text-rose-200 transition hover:bg-rose-400/10"
                       >
                         Delete
                       </button>
                     </div>
                   </div>
-                  <p className="mt-3 text-sm text-slate-600">
+                  <p className="mt-3 text-sm text-slate-300">
                     {item.description || "No description added yet."}
                   </p>
                 </div>
@@ -227,12 +224,8 @@ export default function AdminSkills() {
 function Field({ label, ...props }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
-      <input
-        {...props}
-        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-        required
-      />
+      <label className="mb-2 block text-sm font-medium text-slate-200">{label}</label>
+      <input {...props} className="admin-field" required />
     </div>
   );
 }
@@ -240,8 +233,8 @@ function Field({ label, ...props }) {
 function Notice({ children, tone }) {
   const styles =
     tone === "success"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : "border-rose-200 bg-rose-50 text-rose-700";
+      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+      : "border-rose-400/20 bg-rose-400/10 text-rose-200";
 
   return (
     <div className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${styles}`}>

@@ -223,7 +223,7 @@ export default function StudentQuizPage() {
   };
 
   const progress = questions.length
-    ? Math.round(((currentQuestion + 1) / questions.length) * 100)
+    ? Math.round((answeredQuestions.length / questions.length) * 100)
     : 0;
 
   if (isLoading) {
@@ -232,7 +232,7 @@ export default function StudentQuizPage() {
         title="Loading your quiz"
         subtitle="We are preparing the next set of questions for you."
       >
-        <div className="section-panel text-center text-slate-500">Loading questions...</div>
+        <div className="section-panel text-center text-slate-400">Loading questions...</div>
       </StudentLayout>
     );
   }
@@ -244,7 +244,7 @@ export default function StudentQuizPage() {
         subtitle="Try another filter or return to the dashboard to start a different test."
         actions={<button onClick={() => navigate("/dashboard")} className="secondary-btn">Back to Dashboard</button>}
       >
-        <div className="section-panel text-sm text-slate-500">
+        <div className="section-panel text-sm text-slate-400">
           No questions matched the current skill, category, or company filter.
         </div>
       </StudentLayout>
@@ -265,24 +265,24 @@ export default function StudentQuizPage() {
               <div className="soft-badge">
                 Question {currentQuestion + 1} of {questions.length}
               </div>
-              <h2 className="mt-4 text-3xl font-black text-slate-900">
+              <h2 className="mt-4 text-3xl font-black text-slate-100">
                 {current.question}
               </h2>
             </div>
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-700">
+              <span className="student-chip">
                 {current.skill || "General"}
               </span>
-              <span className="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700">
+              <span className="student-chip">
                 {current.category || "General"}
               </span>
               {current.questionType ? (
-                <span className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-700">
+                <span className="student-chip">
                   {current.questionType}
                 </span>
               ) : null}
               {current.difficulty ? (
-                <span className="rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700">
+                <span className="student-chip">
                   {current.difficulty}
                 </span>
               ) : null}
@@ -290,10 +290,10 @@ export default function StudentQuizPage() {
           </div>
 
           {current.scenarioContext ? (
-            <div className="mb-6 rounded-[24px] border border-slate-100 bg-slate-50 px-5 py-4 text-sm leading-7 text-slate-600">
+            <div className="mb-6 student-card text-sm leading-7 text-slate-300">
               {current.scenarioContext}
               {current.sourceLabel ? (
-                <div className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-400">
+                <div className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500">
                   {current.sourceLabel}
                 </div>
               ) : null}
@@ -307,8 +307,8 @@ export default function StudentQuizPage() {
                 onClick={() => setSelectedOption(idx)}
                 className={`w-full rounded-[24px] border px-5 py-4 text-left text-base font-medium transition ${
                   selectedOption === idx
-                    ? "border-teal-500 bg-teal-50 text-slate-900 shadow-sm"
-                    : "border-slate-200 bg-white/85 text-slate-700 hover:border-teal-200 hover:bg-teal-50/60"
+                    ? "border-cyan-300/50 bg-cyan-400/10 text-slate-50 shadow-sm"
+                    : "border-slate-700/60 bg-slate-900/60 text-slate-300 hover:border-cyan-300/25 hover:bg-slate-800/70"
                 }`}
               >
                 {option}
@@ -335,25 +335,22 @@ export default function StudentQuizPage() {
         </section>
 
         <aside className="section-panel">
-          <h3 className="text-2xl font-black text-slate-900">Progress</h3>
-          <p className="mt-2 text-sm text-slate-500">
+          <h3 className="text-2xl font-black text-slate-100">Progress</h3>
+          <p className="mt-2 text-sm text-slate-400">
             Stay steady and keep your focus on one question at a time.
           </p>
-          <div className="mt-6 h-4 rounded-full bg-slate-100">
-            <div
-              className="h-4 rounded-full bg-teal-600"
-              style={{ width: `${progress}%` }}
-            />
+          <div className="student-progress mt-6 h-4">
+            <span style={{ width: `${progress}%` }} />
           </div>
-          <div className="mt-3 text-sm font-semibold text-slate-700">
+          <div className="mt-3 text-sm font-semibold text-slate-300">
             {progress}% completed
           </div>
 
-          <div className="mt-8 rounded-[24px] border border-slate-100 bg-white/80 p-5">
-            <div className="text-sm uppercase tracking-[0.2em] text-slate-500">
+          <div className="mt-8 student-card">
+            <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
               Current Score
             </div>
-            <div className="mt-3 text-4xl font-black text-slate-900">{score}</div>
+            <div className="mt-3 text-4xl font-black text-slate-100">{score}</div>
           </div>
         </aside>
       </div>
