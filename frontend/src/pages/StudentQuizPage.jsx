@@ -187,15 +187,19 @@ export default function StudentQuizPage() {
       )
       .then((res) => {
         const gamification = res.data?.gamification || {};
+        const enrichedReport = res.data?.report || report;
         navigate("/result", {
           state: {
             score: finalScore,
             total: questions.length,
             report: {
-              ...report,
-              pointsEarned: gamification.pointsEarned || 0,
-              totalPoints: gamification.totalPoints || 0,
-              badgesEarned: gamification.badgesEarned || [],
+              ...enrichedReport,
+              pointsEarned:
+                enrichedReport.pointsEarned ?? gamification.pointsEarned ?? 0,
+              totalPoints:
+                enrichedReport.totalPoints ?? gamification.totalPoints ?? 0,
+              badgesEarned:
+                enrichedReport.badgesEarned ?? gamification.badgesEarned ?? [],
             },
             testType: isCompanyTest ? "company" : "initial",
             company: activeCompany,
@@ -272,8 +276,29 @@ export default function StudentQuizPage() {
               <span className="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700">
                 {current.category || "General"}
               </span>
+              {current.questionType ? (
+                <span className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-700">
+                  {current.questionType}
+                </span>
+              ) : null}
+              {current.difficulty ? (
+                <span className="rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700">
+                  {current.difficulty}
+                </span>
+              ) : null}
             </div>
           </div>
+
+          {current.scenarioContext ? (
+            <div className="mb-6 rounded-[24px] border border-slate-100 bg-slate-50 px-5 py-4 text-sm leading-7 text-slate-600">
+              {current.scenarioContext}
+              {current.sourceLabel ? (
+                <div className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-400">
+                  {current.sourceLabel}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="space-y-4">
             {current.options.map((option, idx) => (

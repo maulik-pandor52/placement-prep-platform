@@ -30,6 +30,17 @@ export default function StudentDashboardPage() {
   const [skillTracker, setSkillTracker] = useState({
     trackedSkills: [],
     recommendedFocus: [],
+    peerComparison: {
+      cohortSize: 0,
+      averageScore: 0,
+      yourScore: 0,
+      percentile: 0,
+      rank: 0,
+      strengthsVsPeers: [],
+      needsVsPeers: [],
+      skillComparison: [],
+    },
+    industryTrends: [],
   });
   const [interviewHistory, setInterviewHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +85,21 @@ export default function StudentDashboardPage() {
         setResults(sorted);
         setLeaderboard(leaderboardRes.data || []);
         setSkillTracker(
-          skillTrackerRes.data || { trackedSkills: [], recommendedFocus: [] },
+          skillTrackerRes.data || {
+            trackedSkills: [],
+            recommendedFocus: [],
+            peerComparison: {
+              cohortSize: 0,
+              averageScore: 0,
+              yourScore: 0,
+              percentile: 0,
+              rank: 0,
+              strengthsVsPeers: [],
+              needsVsPeers: [],
+              skillComparison: [],
+            },
+            industryTrends: [],
+          },
         );
         setInterviewHistory(interviewHistoryRes.data || []);
       } catch (err) {
@@ -132,6 +157,7 @@ export default function StudentDashboardPage() {
   const latestReport = results[0]?.report || {};
   const latestPoints = latestReport.totalPoints || currentUser?.points || 0;
   const latestBadges = latestReport.badgesEarned || currentUser?.badges || [];
+  const readinessGap = latestReport.benchmarkGap || 0;
 
   const chartData = useMemo(
     () => ({
@@ -193,6 +219,15 @@ export default function StudentDashboardPage() {
         <MetricCard title="Average Score" value={stats.averageScore} />
         <MetricCard title="Performance" value={stats.performance} />
         <MetricCard title="Points" value={latestPoints} />
+      </div>
+
+      <div className="mt-6 grid gap-5 md:grid-cols-3">
+        <MetricCard title="Readiness Score" value={`${latestReport.readinessScore || 0}%`} />
+        <MetricCard title="Readiness Level" value={latestReport.readinessLevel || "Needs Work"} />
+        <MetricCard
+          title="Benchmark Gap"
+          value={`${readinessGap >= 0 ? "+" : ""}${readinessGap}%`}
+        />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
@@ -306,10 +341,15 @@ export default function StudentDashboardPage() {
               Complete a quiz to see strengths, weaknesses, and tips here.
             </p>
           ) : (
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <ChipGroup title="Strengths" items={results[0].report.strengths} tone="green" />
               <ChipGroup title="Weaknesses" items={results[0].report.weaknesses} tone="orange" />
-              <ChipGroup title="Tips" items={results[0].report.tips} tone="blue" />
+              <ChipGroup
+                title="Tips"
+                items={results[0].report.tips}
+                tone="blue"
+                multiline
+              />
             </div>
           )}
         </section>
@@ -345,6 +385,219 @@ export default function StudentDashboardPage() {
             ) : (
               <p className="text-sm text-slate-500">
                 Complete more quizzes to unlock skill trends.
+              </p>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <section className="section-panel">
+          <h2 className="text-2xl font-black text-slate-900">Readiness Summary</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            {latestReport.readinessSummary ||
+              "Complete a quiz to generate a deeper readiness summary."}
+          </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <RewardTile
+              label="Target Benchmark"
+              value={`${latestReport.benchmarkScore || 0}%`}
+            />
+            <RewardTile
+              label="Category Insights"
+              value={String(latestReport.categoryInsights?.length || 0)}
+            />
+          </div>
+        </section>
+
+        <section className="section-panel">
+          <h2 className="text-2xl font-black text-slate-900">Roadmap</h2>
+          <div className="mt-5 space-y-3">
+            {(latestReport.improvementRoadmap?.length
+              ? latestReport.improvementRoadmap
+              : ["Your next steps will appear after the next completed quiz."]).map((item) => (
+              <div
+                key={item}
+                className="rounded-[22px] border border-teal-100 bg-teal-50/70 px-4 py-3 text-sm leading-7 text-slate-700"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="section-panel">
+          <h2 className="text-2xl font-black text-slate-900">Skill Gap Analysis</h2>
+          <div className="mt-5 space-y-4">
+            {latestReport.skillGapAnalysis?.length ? (
+              latestReport.skillGapAnalysis.map((item) => (
+                <div key={item.label}>
+                  <div className="mb-2 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-slate-800">{item.label}</span>
+                    <span className="text-slate-500">
+                      {item.currentScore}% / target {item.targetScore}%
+                    </span>
+                  </div>
+                  <div className="h-3 rounded-full bg-slate-100">
+                    <div
+                      className="h-3 rounded-full bg-teal-600"
+                      style={{ width: `${Math.min(item.currentScore, 100)}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 text-sm text-slate-500">
+                    Gap remaining: {item.gap}% / Priority {item.priority}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">
+                Complete a quiz to see company-aligned skill gaps.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="section-panel">
+          <h2 className="text-2xl font-black text-slate-900">Category Insights</h2>
+          <div className="mt-5 space-y-3">
+            {(latestReport.categoryInsights?.length
+              ? latestReport.categoryInsights
+              : ["Category-level insights will appear after your next completed quiz."]).map((item) => (
+              <div
+                key={item}
+                className="rounded-[22px] border border-sky-100 bg-sky-50/70 px-4 py-3 text-sm leading-7 text-slate-700"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <section className="section-panel">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900">Peer Comparison</h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Compare your latest readiness against the current student cohort.
+              </p>
+            </div>
+            <div className="soft-badge">
+              {skillTracker.peerComparison?.cohortSize || 0} students
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <RewardTile
+              label="Your Score"
+              value={`${skillTracker.peerComparison?.yourScore || 0}%`}
+            />
+            <RewardTile
+              label="Peer Average"
+              value={`${skillTracker.peerComparison?.averageScore || 0}%`}
+            />
+            <RewardTile
+              label="Percentile"
+              value={`${skillTracker.peerComparison?.percentile || 0}th`}
+            />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <SimpleListCard
+              title="Ahead of Peers In"
+              items={skillTracker.peerComparison?.strengthsVsPeers}
+              emptyText="More peer-comparison data will appear after more attempts."
+              tone="green"
+            />
+            <SimpleListCard
+              title="Needs More Work"
+              items={skillTracker.peerComparison?.needsVsPeers}
+              emptyText="No major peer gap detected right now."
+              tone="orange"
+            />
+          </div>
+
+          <div className="mt-6 space-y-4">
+            {(skillTracker.peerComparison?.skillComparison || []).map((item) => (
+              <div key={item.label}>
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-slate-800">{item.label}</span>
+                  <span className="text-slate-500">
+                    You {item.yourScore}% / Peers {item.peerAverage}%
+                  </span>
+                </div>
+                <div className="h-3 rounded-full bg-slate-100">
+                  <div
+                    className="h-3 rounded-full bg-teal-600"
+                    style={{ width: `${Math.min(item.yourScore, 100)}%` }}
+                  />
+                </div>
+                <div className="mt-2 text-sm text-slate-500">
+                  Gap: {item.gap >= 0 ? "+" : ""}
+                  {item.gap}% / Percentile {item.percentile}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="section-panel">
+          <h2 className="text-2xl font-black text-slate-900">Industry Trends</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            See which skills and company benchmarks are currently most in demand.
+          </p>
+          <div className="mt-5 space-y-4">
+            {(skillTracker.industryTrends || []).length ? (
+              skillTracker.industryTrends.map((trend) => (
+                <div
+                  key={trend.company}
+                  className="rounded-[24px] border border-slate-100 bg-white/80 p-5"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-lg font-semibold text-slate-900">
+                        {trend.company}
+                      </div>
+                      <div className="mt-1 text-sm text-slate-500">
+                        {trend.industry}
+                      </div>
+                    </div>
+                    <div className="soft-badge">{trend.growthLabel}</div>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[20px] border border-teal-100 bg-teal-50/70 px-4 py-3">
+                      <div className="text-sm text-teal-700">Top Skill</div>
+                      <div className="mt-2 text-xl font-black text-slate-900">
+                        {trend.topSkill}
+                      </div>
+                    </div>
+                    <div className="rounded-[20px] border border-sky-100 bg-sky-50/70 px-4 py-3">
+                      <div className="text-sm text-sky-700">Demand Score</div>
+                      <div className="mt-2 text-xl font-black text-slate-900">
+                        {trend.demandScore}%
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-slate-600">
+                    Benchmark target: {trend.benchmarkScore}% / Typical rounds:{" "}
+                    {trend.topRoles?.join(", ")}
+                  </div>
+                  <div className="mt-2 text-sm text-slate-600">
+                    {trend.liveOpenings ? `Live openings: ${trend.liveOpenings}` : "Live openings unavailable"}{" "}
+                    / {trend.averageSalary ? `Avg salary: ${trend.averageSalary}` : "Salary not reported"}{" "}
+                    / {trend.topLocation ? `Top location: ${trend.topLocation}` : ""}
+                  </div>
+                  <div className="mt-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+                    {trend.sourceLabel}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">
+                Industry-trend data will appear after the first company datasets load.
               </p>
             )}
           </div>
@@ -401,10 +654,10 @@ export default function StudentDashboardPage() {
                   className="rounded-[22px] border border-slate-100 bg-white/80 px-4 py-3"
                 >
                   <div className="font-semibold text-slate-900">
-                    {session.company || "General"} • {session.role || "Interview"}
+                    {session.company || "General"} / {session.role || "Interview"}
                   </div>
                   <div className="mt-1 text-sm text-slate-500">
-                    Skill: {session.skill || "General"} • Score: {session.overallScore}%
+                    Skill: {session.skill || "General"} / Score: {session.overallScore}%
                   </div>
                 </div>
               ))
@@ -438,7 +691,7 @@ function RewardTile({ label, value }) {
   );
 }
 
-function ChipGroup({ title, items = [], tone }) {
+function ChipGroup({ title, items = [], tone, multiline = false }) {
   const toneClasses = {
     green: "border-emerald-200 bg-emerald-50 text-emerald-700",
     orange: "border-orange-200 bg-orange-50 text-orange-700",
@@ -450,11 +703,49 @@ function ChipGroup({ title, items = [], tone }) {
       <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
         {title}
       </div>
+      {multiline ? (
+        <div className="mt-3 space-y-3">
+          {(items?.length ? items : ["No items yet."]).map((item) => (
+            <div
+              key={`${title}-${item}`}
+              className={`rounded-[22px] border px-4 py-3 text-sm leading-7 ${toneClasses[tone]}`}
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(items?.length ? items : ["No items yet."]).map((item) => (
+            <span
+              key={`${title}-${item}`}
+              className={`max-w-full break-words rounded-full border px-3 py-1 text-sm font-medium ${toneClasses[tone]}`}
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SimpleListCard({ title, items = [], emptyText, tone }) {
+  const tones = {
+    green: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    orange: "border-orange-200 bg-orange-50 text-orange-700",
+  };
+
+  return (
+    <div>
+      <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+        {title}
+      </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        {(items?.length ? items : ["No items yet."]).map((item) => (
+        {(items.length ? items : [emptyText]).map((item) => (
           <span
             key={`${title}-${item}`}
-            className={`rounded-full border px-3 py-1 text-sm font-medium ${toneClasses[tone]}`}
+            className={`max-w-full break-words rounded-full border px-3 py-1 text-sm font-medium ${tones[tone]}`}
           >
             {item}
           </span>
@@ -463,3 +754,4 @@ function ChipGroup({ title, items = [], tone }) {
     </div>
   );
 }
+

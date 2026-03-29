@@ -39,6 +39,41 @@ const companySuggestionSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    readinessScore: {
+      type: Number,
+      default: 0,
+    },
+    benchmarkGap: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { _id: false },
+);
+
+const gapInsightSchema = new mongoose.Schema(
+  {
+    label: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    currentScore: {
+      type: Number,
+      default: 0,
+    },
+    targetScore: {
+      type: Number,
+      default: 70,
+    },
+    gap: {
+      type: Number,
+      default: 0,
+    },
+    priority: {
+      type: Number,
+      default: 1,
+    },
   },
   { _id: false },
 );
@@ -107,6 +142,38 @@ const quizResultSchema = new mongoose.Schema({
     },
     badgesEarned: {
       type: [String],
+      default: [],
+    },
+    readinessScore: {
+      type: Number,
+      default: 0,
+    },
+    readinessLevel: {
+      type: String,
+      default: "Needs Work",
+    },
+    benchmarkScore: {
+      type: Number,
+      default: 0,
+    },
+    benchmarkGap: {
+      type: Number,
+      default: 0,
+    },
+    readinessSummary: {
+      type: String,
+      default: "",
+    },
+    improvementRoadmap: {
+      type: [String],
+      default: [],
+    },
+    categoryInsights: {
+      type: [String],
+      default: [],
+    },
+    skillGapAnalysis: {
+      type: [gapInsightSchema],
       default: [],
     },
   },

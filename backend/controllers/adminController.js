@@ -3,6 +3,24 @@ const Question = require("../models/Question");
 const QuizResult = require("../models/QuizResult");
 const Skill = require("../models/Skill");
 const Company = require("../models/Company");
+const defaultCompanies = require("../data/defaultCompanies");
+const bcrypt = require("bcryptjs");
+
+let defaultCompaniesEnsured = false;
+
+const ensureDefaultCompanies = async () => {
+  if (defaultCompaniesEnsured) {
+    return;
+  }
+
+  await Promise.all(
+    defaultCompanies.map((company) =>
+      Company.updateOne({ name: company.name }, { $setOnInsert: company }, { upsert: true }),
+    ),
+  );
+
+  defaultCompaniesEnsured = true;
+};
 
 const normalizeStringArray = (value) => {
   if (Array.isArray(value)) {
@@ -28,8 +46,25 @@ const buildQuestionPayload = (body) => {
   const skill = body.skill?.trim() || "General";
   const category = body.category?.trim() || "General";
   const company = body.company?.trim() || "";
+  const questionType = body.questionType?.trim() || "mcq";
+  const difficulty = body.difficulty?.trim() || "medium";
+  const scenarioContext = body.scenarioContext?.trim() || "";
+  const sourceLabel = body.sourceLabel?.trim() || "";
+  const tags = normalizeStringArray(body.tags);
 
-  return { question, options, answer, skill, category, company };
+  return {
+    question,
+    options,
+    answer,
+    skill,
+    category,
+    company,
+    questionType,
+    difficulty,
+    scenarioContext,
+    sourceLabel,
+    tags,
+  };
 };
 
 const validateQuestionPayload = ({ question, options, answer }) => {
@@ -63,6 +98,20 @@ const buildCompanyPayload = (body) => ({
   description: body.description?.trim() || "",
   focusSkills: normalizeStringArray(body.focusSkills),
   preferredCategories: normalizeStringArray(body.preferredCategories),
+  industry: body.industry?.trim() || "Technology",
+  hiringFocus: body.hiringFocus?.trim() || "",
+  assessmentPattern: normalizeStringArray(body.assessmentPattern),
+  benchmarkScore: Number(body.benchmarkScore) || 70,
+  difficultyLevel: body.difficultyLevel?.trim() || "medium",
+  requiredSkills: normalizeStringArray(body.requiredSkills || body.focusSkills).map(
+    (name, index) => ({
+      name,
+      priority: Math.max(1, 5 - index),
+      targetScore: Number(body.targetScore) || 70,
+    }),
+  ),
+  jobApiCountry: body.jobApiCountry?.trim() || "in",
+  jobSearchTerms: normalizeStringArray(body.jobSearchTerms),
 });
 
 const validateCompanyPayload = ({ name }) => {
@@ -73,8 +122,32 @@ const validateCompanyPayload = ({ name }) => {
   return "";
 };
 
+const buildAdminUserPayload = (body) => ({
+  name: body.name?.trim(),
+  email: body.email?.trim().toLowerCase(),
+  password: body.password || "",
+});
+
+const validateAdminUserPayload = ({ name, email, password }) => {
+  if (!name || name.length < 2) {
+    return "Admin name must be at least 2 characters";
+  }
+
+  if (!email || !email.includes("@")) {
+    return "A valid admin email is required";
+  }
+
+  if (!password || password.length < 6) {
+    return "Admin password must be at least 6 characters";
+  }
+
+  return "";
+};
+
 exports.getOverview = async (req, res) => {
   try {
+    await ensureDefaultCompanies();
+
     const [
       userCount,
       questionCount,
@@ -118,6 +191,43 @@ exports.getOverview = async (req, res) => {
       questions,
       skills,
       companies,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createAdminUser = async (req, res) => {
+  try {
+    const payload = buildAdminUserPayload(req.body);
+    const validationMessage = validateAdminUserPayload(payload);
+
+    if (validationMessage) {
+      return res.status(400).json({ message: validationMessage });
+    }
+
+    const existingUser = await User.findOne({ email: payload.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "A user with this email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(payload.password, 10);
+
+    const adminUser = await User.create({
+      name: payload.name,
+      email: payload.email,
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    res.status(201).json({
+      message: "Admin account created successfully",
+      user: {
+        id: adminUser._id,
+        name: adminUser.name,
+        email: adminUser.email,
+        role: adminUser.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -252,6 +362,8 @@ exports.deleteSkill = async (req, res) => {
 
 exports.getCompanies = async (req, res) => {
   try {
+    await ensureDefaultCompanies();
+
     const companies = await Company.find().sort({ name: 1 });
     res.json(companies);
   } catch (error) {

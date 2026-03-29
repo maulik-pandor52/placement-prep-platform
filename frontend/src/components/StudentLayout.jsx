@@ -1,4 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import PrepEasyLogo from "./PrepEasyLogo";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard" },
@@ -16,6 +18,10 @@ export default function StudentLayout({
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
+  useEffect(() => {
+    document.title = title ? `PrepEasy | ${title}` : "PrepEasy";
+  }, [title]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -29,12 +35,11 @@ export default function StudentLayout({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
               <Link to="/dashboard" className="min-w-[220px]">
-                <div className="soft-badge">Placement Prep</div>
-                <div className="mt-3 text-2xl font-black tracking-tight text-slate-900">
-                  Career Readiness Studio
-                </div>
-                <div className="mt-1 text-sm text-slate-500">
-                  Practice, track progress, and prepare with confidence.
+                <div className="soft-badge">Prep Platform</div>
+                <div className="mt-3">
+                  <PrepEasyLogo
+                    subtitle="Practice, track progress, and prepare with confidence."
+                  />
                 </div>
               </Link>
 

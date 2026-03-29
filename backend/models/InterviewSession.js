@@ -26,6 +26,40 @@ const answerSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    responseSeconds: {
+      type: Number,
+      default: 0,
+    },
+    usedCamera: {
+      type: Boolean,
+      default: false,
+    },
+    videoDurationSeconds: {
+      type: Number,
+      default: 0,
+    },
+    deliveryScore: {
+      type: Number,
+      default: 0,
+    },
+    videoUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    confidenceScore: {
+      type: Number,
+      default: 0,
+    },
+    confusionScore: {
+      type: Number,
+      default: 0,
+    },
+    expressionSummary: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   { _id: false },
 );
@@ -51,9 +85,35 @@ const interviewSessionSchema = new mongoose.Schema({
     default: "",
     trim: true,
   },
+  interviewMode: {
+    type: String,
+    enum: ["text", "video"],
+    default: "text",
+  },
   overallScore: {
     type: Number,
     default: 0,
+  },
+  contentScore: {
+    type: Number,
+    default: 0,
+  },
+  deliveryScore: {
+    type: Number,
+    default: 0,
+  },
+  confidenceScore: {
+    type: Number,
+    default: 0,
+  },
+  confusionScore: {
+    type: Number,
+    default: 0,
+  },
+  expressionSummary: {
+    type: String,
+    default: "",
+    trim: true,
   },
   strengths: {
     type: [String],
@@ -70,6 +130,39 @@ const interviewSessionSchema = new mongoose.Schema({
   answers: {
     type: [answerSchema],
     default: [],
+  },
+  videoSummary: {
+    cameraEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    recordingsCount: {
+      type: Number,
+      default: 0,
+    },
+    totalRecordedSeconds: {
+      type: Number,
+      default: 0,
+    },
+  },
+  facialInsights: {
+    faceTrackingSupported: {
+      type: Boolean,
+      default: false,
+    },
+    averageConfidence: {
+      type: Number,
+      default: 0,
+    },
+    averageConfusion: {
+      type: Number,
+      default: 0,
+    },
+    summary: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   createdAt: {
     type: Date,

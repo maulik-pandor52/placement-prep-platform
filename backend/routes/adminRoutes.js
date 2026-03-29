@@ -5,6 +5,7 @@ const auth = require("../middleware/authMiddleware");
 const adminOnly = require("../middleware/adminMiddleware");
 const {
   getOverview,
+  createAdminUser,
   getQuestions,
   createQuestion,
   updateQuestion,
@@ -20,6 +21,7 @@ const {
 } = require("../controllers/adminController");
 
 router.get("/overview", auth, adminOnly, getOverview);
+router.post("/admin-users", auth, adminOnly, createAdminUser);
 router.get("/questions", auth, adminOnly, getQuestions);
 router.post("/questions", auth, adminOnly, createQuestion);
 router.put("/questions/:id", auth, adminOnly, updateQuestion);

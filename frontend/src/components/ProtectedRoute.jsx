@@ -17,5 +17,9 @@ export default function ProtectedRoute({
     return <Navigate to="/dashboard" replace />;
   }
 
+  if (!requireAdmin && user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+
   return children;
 }

@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import PrepEasyLogo from "../components/PrepEasyLogo";
 
 export default function StudentRegisterPage() {
   const navigate = useNavigate();
@@ -12,6 +14,10 @@ export default function StudentRegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    document.title = "PrepEasy | Create Account";
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,6 +73,10 @@ export default function StudentRegisterPage() {
       <div className="page-wrap">
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <section className="section-panel p-8 sm:p-10">
+            <PrepEasyLogo
+              subtitle="Create your account and start building momentum."
+              compact
+            />
             <div className="soft-badge">Create Account</div>
             <h1 className="mt-4 text-3xl font-black text-slate-900">
               Start your placement preparation in a workspace built for momentum.
@@ -155,6 +165,11 @@ export default function StudentRegisterPage() {
           </section>
 
           <section className="hero-panel px-8 py-10 sm:px-10 sm:py-12">
+            <PrepEasyLogo
+              subtitle="Placement practice that feels organized, motivating, and clear."
+              textClassName="text-white"
+              subtextClassName="text-slate-100/80"
+            />
             <div className="soft-badge bg-white/12 text-white">Why Students Like It</div>
             <h2 className="mt-5 text-5xl font-black leading-tight">
               One platform for practice, tracking, and interview preparation.

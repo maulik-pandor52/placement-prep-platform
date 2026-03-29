@@ -1,0 +1,44 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="prepeasyStroke" x1="20" y1="16" x2="111" y2="99" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F80ED"/>
+      <stop offset="1" stop-color="#18C2B8"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#F8FBFF"/>
+  <path
+    d="M23 44L64 22L98 40"
+    stroke="url(#prepeasyStroke)"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M35 50V77L63 95L89 79V61"
+    stroke="url(#prepeasyStroke)"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M62 47L44 58L64 65C73 68 82 66 89 59L105 42"
+    stroke="url(#prepeasyStroke)"
+    stroke-width="9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M95 29L109 27L107 41"
+    stroke="url(#prepeasyStroke)"
+    stroke-width="9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M31 54V71"
+    stroke="url(#prepeasyStroke)"
+    stroke-width="6"
+    stroke-linecap="round"
+  />
+  <path d="M31 73L25 87H37L31 73Z" fill="#2F80ED"/>
+</svg>

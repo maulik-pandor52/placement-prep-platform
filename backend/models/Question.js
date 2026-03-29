@@ -35,6 +35,35 @@ const questionSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+
+    questionType: {
+      type: String,
+      default: "mcq",
+      trim: true,
+    },
+
+    difficulty: {
+      type: String,
+      default: "medium",
+      trim: true,
+    },
+
+    scenarioContext: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    sourceLabel: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    tags: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

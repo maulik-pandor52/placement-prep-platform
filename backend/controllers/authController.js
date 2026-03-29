@@ -31,11 +31,19 @@ const buildAuthResponse = (user, role) => {
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const resolvedRole = resolveRole(email);
+    const genericRegistrationMessage = "Unable to create account with the provided details";
+
+    if (resolvedRole === "admin") {
+      return res.status(403).json({
+        message: genericRegistrationMessage,
+      });
+    }
 
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: genericRegistrationMessage });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -44,7 +52,7 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: resolveRole(email),
+      role: resolvedRole,
     });
 
     await user.save();
@@ -65,15 +73,17 @@ exports.register = async (req, res) => {
 
 exports.registerAdmin = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, inviteCode } = req.body;
+    const normalizedEmail = email?.trim().toLowerCase();
+    const expectedInviteCode = (process.env.ADMIN_INVITE_CODE || "").trim();
 
-    if (resolveRole(email) !== "admin") {
+    if (!expectedInviteCode || inviteCode?.trim() !== expectedInviteCode) {
       return res.status(403).json({
-        message: "This email is not authorized for admin signup",
+        message: "Invalid admin invite code",
       });
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: normalizedEmail });
 
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
@@ -83,7 +93,7 @@ exports.registerAdmin = async (req, res) => {
 
     const user = new User({
       name,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       role: "admin",
     });
@@ -107,20 +117,25 @@ exports.registerAdmin = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const invalidCredentialsMessage = "Invalid email or password";
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: invalidCredentialsMessage });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: invalidCredentialsMessage });
     }
 
     const role = user.role || resolveRole(user.email);
+
+    if (role === "admin") {
+      return res.status(400).json({ message: invalidCredentialsMessage });
+    }
 
     if (!user.role) {
       user.role = role;

@@ -9,6 +9,11 @@ const emptyForm = {
   skill: "",
   category: "",
   company: "",
+  questionType: "mcq",
+  difficulty: "medium",
+  scenarioContext: "",
+  sourceLabel: "",
+  tags: "",
 };
 
 export default function AdminQuestions() {
@@ -74,6 +79,7 @@ export default function AdminQuestions() {
         ...form,
         answer: Number(form.answer),
         options: form.options.map((item) => item.trim()).filter(Boolean),
+        tags: form.tags,
       };
       const headers = { Authorization: `Bearer ${token}` };
 
@@ -118,9 +124,52 @@ export default function AdminQuestions() {
       skill: item.skill || "",
       category: item.category || "",
       company: item.company || "",
+      questionType: item.questionType || "mcq",
+      difficulty: item.difficulty || "medium",
+      scenarioContext: item.scenarioContext || "",
+      sourceLabel: item.sourceLabel || "",
+      tags: Array.isArray(item.tags) ? item.tags.join(", ") : "",
     });
     setError("");
     setSuccess("");
+  };
+
+  const fillCompanyDraft = () => {
+    const selectedCompany = companies.find((item) => item.name === form.company);
+    if (!selectedCompany) {
+      setError("Select a company first to generate a company-based question draft.");
+      return;
+    }
+
+    const skillName =
+      form.skill ||
+      selectedCompany.requiredSkills?.[0]?.name ||
+      selectedCompany.focusSkills?.[0] ||
+      "Problem Solving";
+    const categoryName =
+      form.category ||
+      selectedCompany.preferredCategories?.[0] ||
+      "Technical";
+
+    setForm((prev) => ({
+      ...prev,
+      questionType: "company_scenario",
+      difficulty: selectedCompany.difficultyLevel || "medium",
+      question: `${selectedCompany.name} asks you to solve a ${categoryName.toLowerCase()} scenario using ${skillName}. Which response is strongest?`,
+      options: [
+        `Clarify requirements, explain tradeoffs, and propose a practical ${skillName} solution aligned with the company context.`,
+        "Start coding immediately without confirming the problem or expected outcome.",
+        "Avoid the scenario and shift the discussion to an unrelated project feature.",
+        "Pick the quickest answer even if it does not match the company requirement.",
+      ],
+      answer: 0,
+      scenarioContext:
+        `${selectedCompany.name} focuses on ${selectedCompany.hiringFocus || "practical placement readiness"} and often evaluates ${skillName} in real project-like discussions.`,
+      sourceLabel: `Draft generated from ${selectedCompany.name} company profile`,
+      tags: [selectedCompany.name, skillName, categoryName, "scenario"].join(", "),
+    }));
+    setError("");
+    setSuccess("Company-based draft question generated. Review and save it.");
   };
 
   const handleDelete = async (id) => {
@@ -157,14 +206,23 @@ export default function AdminQuestions() {
             <h3 className="text-xl font-semibold text-slate-900">
               {editingId ? "Edit Question" : "Add Question"}
             </h3>
-            {editingId ? (
+            <div className="flex items-center gap-3">
               <button
-                onClick={resetForm}
-                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                onClick={fillCompanyDraft}
+                type="button"
+                className="rounded-xl border border-cyan-200 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
               >
-                Cancel edit
+                Generate Company Draft
               </button>
-            ) : null}
+              {editingId ? (
+                <button
+                  onClick={resetForm}
+                  className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  Cancel edit
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -234,7 +292,54 @@ export default function AdminQuestions() {
                 list="companies-list"
                 required={false}
               />
+              <FormInput
+                label="Question Type"
+                value={form.questionType}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, questionType: e.target.value }))
+                }
+              />
+              <FormInput
+                label="Difficulty"
+                value={form.difficulty}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, difficulty: e.target.value }))
+                }
+              />
             </div>
+
+            <FormInput
+              label="Source Label"
+              value={form.sourceLabel}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, sourceLabel: e.target.value }))
+              }
+              required={false}
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Scenario Context
+              </label>
+              <textarea
+                rows={3}
+                value={form.scenarioContext}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, scenarioContext: e.target.value }))
+                }
+                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+              />
+            </div>
+
+            <FormInput
+              label="Tags"
+              value={form.tags}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, tags: e.target.value }))
+              }
+              placeholder="react, scenario, hiring, company"
+              required={false}
+            />
 
             <datalist id="skills-list">
               {skills.map((item) => (
@@ -281,8 +386,20 @@ export default function AdminQuestions() {
                     <Tag label={`Skill: ${item.skill}`} />
                     <Tag label={`Category: ${item.category}`} />
                     {item.company ? <Tag label={`Company: ${item.company}`} /> : null}
+                    {item.questionType ? <Tag label={`Type: ${item.questionType}`} /> : null}
+                    {item.difficulty ? <Tag label={`Difficulty: ${item.difficulty}`} /> : null}
                     <Tag label={`Answer: ${item.answer}`} />
                   </div>
+                  {item.scenarioContext ? (
+                    <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
+                      {item.scenarioContext}
+                    </p>
+                  ) : null}
+                  {item.sourceLabel ? (
+                    <div className="mt-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+                      {item.sourceLabel}
+                    </div>
+                  ) : null}
                   <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-600">
                     {item.options.map((option, index) => (
                       <li key={`${item._id}-${index}`}>{option}</li>

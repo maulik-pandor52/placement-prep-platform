@@ -1,13 +1,19 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import PrepEasyLogo from "../components/PrepEasyLogo";
 
 export default function AdminRegister() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", inviteCode: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "PrepEasy Admin | Create Account";
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,6 +33,7 @@ export default function AdminRegister() {
           name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
+          inviteCode: form.inviteCode,
         },
       );
 
@@ -49,6 +56,11 @@ export default function AdminRegister() {
     <div className="min-h-screen bg-[#f5f1e8] px-4 py-10">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_1.05fr]">
         <section className="rounded-[2rem] bg-[#163a2f] p-10 text-white shadow-2xl">
+          <PrepEasyLogo
+            subtitle="Set up protected admin access for PrepEasy."
+            textClassName="text-white"
+            subtextClassName="text-emerald-100/80"
+          />
           <p className="text-sm font-semibold uppercase tracking-[0.32em] text-emerald-200">
             Admin Signup
           </p>
@@ -56,8 +68,8 @@ export default function AdminRegister() {
             Create a protected admin account for the management team.
           </h1>
           <p className="mt-5 text-lg text-emerald-100/90">
-            This page works only for admin-approved emails. If the email is not in
-            `ADMIN_EMAILS`, signup will be blocked.
+            New admins can register here with the shared admin invite code. Once
+            created, the account is stored in MongoDB and can sign in normally.
           </p>
 
           <div className="mt-10 rounded-3xl bg-white/10 p-5">
@@ -73,9 +85,10 @@ export default function AdminRegister() {
         </section>
 
         <section className="rounded-[2rem] bg-white p-8 shadow-2xl">
+          <PrepEasyLogo subtitle="Create an admin account" compact />
           <h2 className="text-3xl font-bold text-slate-900">Create Admin Account</h2>
           <p className="mt-2 text-sm text-slate-500">
-            Use the same email that is whitelisted on the backend.
+            Enter your admin details and the valid invite code.
           </p>
 
           {error ? (
@@ -113,6 +126,14 @@ export default function AdminRegister() {
               value={form.password}
               onChange={handleChange}
               placeholder="Password"
+            />
+            <Field
+              label="Admin Invite Code"
+              name="inviteCode"
+              type="password"
+              value={form.inviteCode}
+              onChange={handleChange}
+              placeholder="Enter admin invite code"
             />
 
             <button

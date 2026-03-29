@@ -7,6 +7,12 @@ const emptyForm = {
   description: "",
   focusSkills: "",
   preferredCategories: "",
+  hiringFocus: "",
+  assessmentPattern: "",
+  benchmarkScore: 70,
+  difficultyLevel: "medium",
+  jobApiCountry: "in",
+  jobSearchTerms: "",
 };
 
 export default function AdminCompanies() {
@@ -171,6 +177,58 @@ export default function AdminCompanies() {
               }
               placeholder="Frontend, Backend, Aptitude"
             />
+            <Field
+              label="Hiring Focus"
+              value={form.hiringFocus}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, hiringFocus: e.target.value }))
+              }
+              required={false}
+            />
+            <Field
+              label="Assessment Pattern"
+              value={form.assessmentPattern}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, assessmentPattern: e.target.value }))
+              }
+              placeholder="Aptitude MCQs, Technical MCQs, Coding round"
+              required={false}
+            />
+            <div className="grid gap-4 md:grid-cols-3">
+              <Field
+                label="Benchmark Score"
+                type="number"
+                min="0"
+                max="100"
+                value={form.benchmarkScore}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, benchmarkScore: e.target.value }))
+                }
+              />
+              <Field
+                label="Difficulty"
+                value={form.difficultyLevel}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, difficultyLevel: e.target.value }))
+                }
+              />
+              <Field
+                label="Job API Country"
+                value={form.jobApiCountry}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, jobApiCountry: e.target.value }))
+                }
+              />
+            </div>
+            <Field
+              label="Job Search Terms"
+              value={form.jobSearchTerms}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, jobSearchTerms: e.target.value }))
+              }
+              placeholder="Infosys React Developer, Infosys Graduate Engineer"
+              required={false}
+            />
 
             <datalist id="skills-list">
               {skills.map((item) => (
@@ -223,6 +281,12 @@ export default function AdminCompanies() {
                             description: item.description || "",
                             focusSkills: (item.focusSkills || []).join(", "),
                             preferredCategories: (item.preferredCategories || []).join(", "),
+                            hiringFocus: item.hiringFocus || "",
+                            assessmentPattern: (item.assessmentPattern || []).join(", "),
+                            benchmarkScore: item.benchmarkScore || 70,
+                            difficultyLevel: item.difficultyLevel || "medium",
+                            jobApiCountry: item.jobApiCountry || "in",
+                            jobSearchTerms: (item.jobSearchTerms || []).join(", "),
                           });
                           setError("");
                           setSuccess("");
@@ -253,6 +317,16 @@ export default function AdminCompanies() {
                         ? item.preferredCategories.join(", ")
                         : "None added"}
                     </div>
+                    <div>
+                      <span className="font-semibold text-slate-800">Hiring Focus:</span>{" "}
+                      {item.hiringFocus || "Not set"}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-slate-800">Job Search Terms:</span>{" "}
+                      {(item.jobSearchTerms || []).length
+                        ? item.jobSearchTerms.join(", ")
+                        : "Using company/focus fallback"}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -264,14 +338,14 @@ export default function AdminCompanies() {
   );
 }
 
-function Field({ label, ...props }) {
+function Field({ label, required = true, ...props }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
       <input
         {...props}
         className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-        required
+        required={required}
       />
     </div>
   );

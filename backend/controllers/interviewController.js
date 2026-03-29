@@ -1,4 +1,9 @@
+const fs = require("fs");
+const path = require("path");
 const InterviewSession = require("../models/InterviewSession");
+
+const uploadsDir = path.join(__dirname, "..", "uploads", "interviews");
+fs.mkdirSync(uploadsDir, { recursive: true });
 
 const interviewBank = {
   default: [
@@ -105,6 +110,111 @@ const scoreAnswer = ({ answer = "", keywords = [] }) => {
   return { score, feedback };
 };
 
+const scoreDelivery = ({
+  responseSeconds = 0,
+  usedCamera = false,
+  videoDurationSeconds = 0,
+}) => {
+  let score = 25;
+
+  if (usedCamera) {
+    score += 25;
+  }
+
+  if (responseSeconds >= 30) {
+    score += 20;
+  } else if (responseSeconds >= 15) {
+    score += 10;
+  }
+
+  if (videoDurationSeconds >= 25) {
+    score += 20;
+  } else if (videoDurationSeconds >= 10) {
+    score += 10;
+  }
+
+  if (responseSeconds <= 120) {
+    score += 10;
+  }
+
+  return Math.max(0, Math.min(100, score));
+};
+
+const scoreFacialSignals = ({ facialMetrics = {}, usedCamera = false }) => {
+  const totalSamples = Number(facialMetrics.totalSamples) || 0;
+  const faceVisibleSamples = Number(facialMetrics.faceVisibleSamples) || 0;
+  const centeredSamples = Number(facialMetrics.centeredSamples) || 0;
+  const stableSamples = Number(facialMetrics.stableSamples) || 0;
+  const supported = Boolean(facialMetrics.supported);
+
+  if (!usedCamera || !supported || !totalSamples) {
+    return {
+      confidenceScore: usedCamera ? 45 : 0,
+      confusionScore: usedCamera ? 20 : 0,
+      expressionSummary: usedCamera
+        ? "Camera recording was available, but facial tracking data was limited."
+        : "No camera-based facial analysis available for this answer.",
+      supported,
+    };
+  }
+
+  const visibleRate = faceVisibleSamples / totalSamples;
+  const centeredRate = centeredSamples / Math.max(faceVisibleSamples, 1);
+  const stableRate = stableSamples / Math.max(faceVisibleSamples, 1);
+
+  const confidenceScore = Math.round(
+    Math.min(100, visibleRate * 40 + centeredRate * 35 + stableRate * 25),
+  );
+  const confusionScore = Math.round(
+    Math.min(
+      100,
+      (1 - visibleRate) * 35 + (1 - centeredRate) * 30 + (1 - stableRate) * 35,
+    ),
+  );
+
+  let expressionSummary = "Camera presence looked moderately steady.";
+  if (confidenceScore >= 75) {
+    expressionSummary = "Face position and eye-line looked steady, suggesting confident delivery.";
+  } else if (confusionScore >= 55) {
+    expressionSummary = "Frequent face loss or movement suggested some uncertainty or distraction.";
+  }
+
+  return {
+    confidenceScore,
+    confusionScore,
+    expressionSummary,
+    supported,
+  };
+};
+
+exports.uploadInterviewClip = async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!req.body || !req.body.length) {
+      return res.status(400).json({ message: "No recording data received" });
+    }
+
+    const questionIndex = Number(req.headers["x-question-index"] || 0);
+    const ext = String(req.headers["x-file-ext"] || "webm").replace(/[^a-z0-9]/gi, "") || "webm";
+    const filename = `${req.user.id}-${Date.now()}-${questionIndex}.${ext}`;
+    const filePath = path.join(uploadsDir, filename);
+
+    await fs.promises.writeFile(filePath, req.body);
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    res.status(201).json({
+      message: "Recording uploaded successfully",
+      videoUrl: `${baseUrl}/uploads/interviews/${filename}`,
+      filename,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.getInterviewQuestions = async (req, res) => {
   try {
     const { skill = "", company = "", role = "" } = req.query;
@@ -123,15 +233,45 @@ exports.getInterviewQuestions = async (req, res) => {
 
 exports.saveInterviewSession = async (req, res) => {
   try {
-    const { company = "", role = "", skill = "", answers = [] } = req.body;
+    const {
+      company = "",
+      role = "",
+      skill = "",
+      answers = [],
+      interviewMode = "text",
+      videoSummary = {},
+    } = req.body;
 
     const questionSet = getQuestionsForSession({ skill, company });
     const scoredAnswers = questionSet.map((item, index) => {
-      const submitted = answers[index]?.answer || "";
-      const { score, feedback } = scoreAnswer({
+      const submittedAnswer = answers[index] || {};
+      const submitted = submittedAnswer.answer || "";
+      const contentResult = scoreAnswer({
         answer: submitted,
         keywords: item.keywords,
       });
+      const deliveryScore = scoreDelivery({
+        responseSeconds: Number(submittedAnswer.responseSeconds) || 0,
+        usedCamera: Boolean(submittedAnswer.usedCamera),
+        videoDurationSeconds: Number(submittedAnswer.videoDurationSeconds) || 0,
+      });
+      const facialSignals = scoreFacialSignals({
+        facialMetrics: submittedAnswer.facialMetrics || {},
+        usedCamera: Boolean(submittedAnswer.usedCamera),
+      });
+      const score =
+        interviewMode === "video"
+          ? Math.round(
+              contentResult.score * 0.65 +
+                deliveryScore * 0.2 +
+                facialSignals.confidenceScore * 0.15,
+            )
+          : contentResult.score;
+
+      const feedback =
+        interviewMode === "video"
+          ? `${contentResult.feedback} Delivery score: ${deliveryScore}. Facial confidence signal: ${facialSignals.confidenceScore}.`
+          : contentResult.feedback;
 
       return {
         question: item.question,
@@ -139,8 +279,64 @@ exports.saveInterviewSession = async (req, res) => {
         score,
         feedback,
         topic: item.topic,
+        responseSeconds: Number(submittedAnswer.responseSeconds) || 0,
+        usedCamera: Boolean(submittedAnswer.usedCamera),
+        videoDurationSeconds: Number(submittedAnswer.videoDurationSeconds) || 0,
+        deliveryScore,
+        videoUrl: submittedAnswer.videoUrl || "",
+        confidenceScore: facialSignals.confidenceScore,
+        confusionScore: facialSignals.confusionScore,
+        expressionSummary: facialSignals.expressionSummary,
       };
     });
+
+    const contentScore = scoredAnswers.length
+      ? Math.round(
+          scoredAnswers.reduce((sum, item) => sum + scoreAnswer({
+            answer: item.answer,
+            keywords:
+              questionSet.find((question) => question.question === item.question)?.keywords || [],
+          }).score, 0) / scoredAnswers.length,
+        )
+      : 0;
+
+    const deliveryScore = scoredAnswers.length
+      ? Math.round(
+          scoredAnswers.reduce((sum, item) => sum + (item.deliveryScore || 0), 0) /
+            scoredAnswers.length,
+        )
+      : 0;
+
+    const confidenceScore = scoredAnswers.length
+      ? Math.round(
+          scoredAnswers.reduce((sum, item) => sum + (item.confidenceScore || 0), 0) /
+            scoredAnswers.length,
+        )
+      : 0;
+
+    const confusionScore = scoredAnswers.length
+      ? Math.round(
+          scoredAnswers.reduce((sum, item) => sum + (item.confusionScore || 0), 0) /
+            scoredAnswers.length,
+        )
+      : 0;
+
+    const faceTrackingSupported = answers.some(
+      (item) => Boolean(item.facialMetrics?.supported),
+    );
+
+    let expressionSummary = "Facial analysis was not available for this session.";
+    if (faceTrackingSupported) {
+      expressionSummary =
+        confidenceScore >= 70
+          ? "Camera analysis suggests a confident and steady interview presence."
+          : confusionScore >= 55
+            ? "Camera analysis suggests moments of uncertainty or distraction."
+            : "Camera analysis suggests a fairly balanced interview presence.";
+    } else if (interviewMode === "video") {
+      expressionSummary =
+        "Video was recorded, but advanced face tracking was not supported in this browser.";
+    }
 
     const overallScore = scoredAnswers.length
       ? Math.round(
@@ -168,20 +364,48 @@ exports.saveInterviewSession = async (req, res) => {
     if (company) {
       tips.push(`Research recent ${company} projects so your answers feel more company-specific.`);
     }
+    if (interviewMode === "video") {
+      tips.push("Review your recording posture, eye contact, and answer pacing after each session.");
+      if (confusionScore >= 55) {
+        tips.push("Reduce uncertain moments by pausing briefly before answering and keeping your face centered.");
+      }
+      if (confidenceScore >= 70) {
+        tips.push("Your camera presence looked steady. Keep using that calm posture in future rounds.");
+      }
+    }
     if (!tips.length) {
       tips.push("Keep practicing concise STAR-style answers with clear outcomes.");
     }
+
+    const safeVideoSummary = {
+      cameraEnabled: Boolean(videoSummary.cameraEnabled),
+      recordingsCount: Number(videoSummary.recordingsCount) || 0,
+      totalRecordedSeconds: Number(videoSummary.totalRecordedSeconds) || 0,
+    };
 
     const session = await InterviewSession.create({
       userId: req.user.id,
       company: company.trim(),
       role: role.trim(),
       skill: skill.trim(),
+      interviewMode: interviewMode === "video" ? "video" : "text",
       overallScore,
+      contentScore,
+      deliveryScore,
+      confidenceScore,
+      confusionScore,
+      expressionSummary,
       strengths,
       improvements,
       tips,
       answers: scoredAnswers,
+      videoSummary: safeVideoSummary,
+      facialInsights: {
+        faceTrackingSupported,
+        averageConfidence: confidenceScore,
+        averageConfusion: confusionScore,
+        summary: expressionSummary,
+      },
     });
 
     res.status(201).json(session);
