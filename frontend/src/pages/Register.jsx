@@ -201,6 +201,16 @@ export default function Register() {
             Sign in
           </Link>
         </div>
+
+        <div className="mt-3 text-center text-sm text-gray-500">
+          Admin onboarding?{" "}
+          <Link
+            to="/admin/register"
+            className="font-medium text-slate-800 hover:underline"
+          >
+            Open admin signup
+          </Link>
+        </div>
       </div>
     </div>
   );

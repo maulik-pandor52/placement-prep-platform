@@ -1,13 +1,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import Quiz from "./pages/Quiz";
-import Result from "./pages/Result";
-import AdminPanel from "./pages/AdminPanel";
-import MockInterview from "./pages/MockInterview";
+import StudentLoginPage from "./pages/StudentLoginPage";
+import StudentRegisterPage from "./pages/StudentRegisterPage";
+import AdminLogin from "./pages/AdminLogin";
+import AdminRegister from "./pages/AdminRegister";
+import StudentDashboardPage from "./pages/StudentDashboardPage";
+import StudentQuizPage from "./pages/StudentQuizPage";
+import StudentResultPage from "./pages/StudentResultPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminQuestions from "./pages/AdminQuestions";
+import AdminSkills from "./pages/AdminSkills";
+import AdminCompanies from "./pages/AdminCompanies";
+import StudentMockInterviewPage from "./pages/StudentMockInterviewPage";
 
 function App() {
   return (
@@ -15,15 +20,17 @@ function App() {
       <Routes>
         {/* Public access */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<StudentLoginPage />} />
+        <Route path="/register" element={<StudentRegisterPage />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
 
         {/* Protected routes */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <StudentDashboardPage />
             </ProtectedRoute>
           }
         />
@@ -31,7 +38,7 @@ function App() {
           path="/quiz"
           element={
             <ProtectedRoute>
-              <Quiz />
+              <StudentQuizPage />
             </ProtectedRoute>
           }
         />
@@ -39,15 +46,39 @@ function App() {
           path="/result"
           element={
             <ProtectedRoute>
-              <Result />
+              <StudentResultPage />
             </ProtectedRoute>
           }
         />
         <Route
           path="/admin"
           element={
-            <ProtectedRoute requireAdmin>
-              <AdminPanel />
+            <ProtectedRoute requireAdmin redirectTo="/admin/login">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions"
+          element={
+            <ProtectedRoute requireAdmin redirectTo="/admin/login">
+              <AdminQuestions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/skills"
+          element={
+            <ProtectedRoute requireAdmin redirectTo="/admin/login">
+              <AdminSkills />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies"
+          element={
+            <ProtectedRoute requireAdmin redirectTo="/admin/login">
+              <AdminCompanies />
             </ProtectedRoute>
           }
         />
@@ -55,7 +86,7 @@ function App() {
           path="/mock-interview"
           element={
             <ProtectedRoute>
-              <MockInterview />
+              <StudentMockInterviewPage />
             </ProtectedRoute>
           }
         />

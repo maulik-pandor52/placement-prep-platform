@@ -153,6 +153,16 @@ export default function Login() {
           </Link>
         </div>
 
+        <div className="mt-3 text-center text-sm text-gray-500">
+          Admin access?{" "}
+          <Link
+            to="/admin/login"
+            className="font-medium text-slate-800 hover:underline"
+          >
+            Go to admin sign in
+          </Link>
+        </div>
+
         {/* Optional: add forgot password link later */}
         {/* <div className="mt-2 text-center text-sm">
           <Link to="/forgot-password" className="text-blue-600 hover:underline">
