@@ -1,9 +1,32 @@
 const fs = require("fs");
 const path = require("path");
 const InterviewSession = require("../models/InterviewSession");
+const User = require("../models/User");
+const { addActivityToUser, syncEngagementBadges } = require("../utils/activityTracker");
 
 const uploadsDir = path.join(__dirname, "..", "uploads", "interviews");
 fs.mkdirSync(uploadsDir, { recursive: true });
+
+const ensureStudentAccess = async (req, res) => {
+  if (!req.user?.id) {
+    res.status(401).json({ message: "Unauthorized" });
+    return null;
+  }
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return null;
+  }
+
+  if (user.role === "admin") {
+    res.status(403).json({ message: "Admin accounts cannot access student interview data" });
+    return null;
+  }
+
+  return user;
+};
 
 const interviewBank = {
   default: [
@@ -189,8 +212,9 @@ const scoreFacialSignals = ({ facialMetrics = {}, usedCamera = false }) => {
 
 exports.uploadInterviewClip = async (req, res) => {
   try {
-    if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+    const user = await ensureStudentAccess(req, res);
+    if (!user) {
+      return;
     }
 
     if (!req.body || !req.body.length) {
@@ -217,6 +241,11 @@ exports.uploadInterviewClip = async (req, res) => {
 
 exports.getInterviewQuestions = async (req, res) => {
   try {
+    const user = await ensureStudentAccess(req, res);
+    if (!user) {
+      return;
+    }
+
     const { skill = "", company = "", role = "" } = req.query;
     const questions = getQuestionsForSession({ skill, company }).map((item, index) => ({
       id: index + 1,
@@ -233,6 +262,11 @@ exports.getInterviewQuestions = async (req, res) => {
 
 exports.saveInterviewSession = async (req, res) => {
   try {
+    const user = await ensureStudentAccess(req, res);
+    if (!user) {
+      return;
+    }
+
     const {
       company = "",
       role = "",
@@ -408,6 +442,12 @@ exports.saveInterviewSession = async (req, res) => {
       },
     });
 
+    if (user) {
+      addActivityToUser(user, "interview");
+      syncEngagementBadges(user);
+      await user.save();
+    }
+
     res.status(201).json(session);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -416,6 +456,11 @@ exports.saveInterviewSession = async (req, res) => {
 
 exports.getInterviewHistory = async (req, res) => {
   try {
+    const user = await ensureStudentAccess(req, res);
+    if (!user) {
+      return;
+    }
+
     const sessions = await InterviewSession.find({ userId: req.user.id }).sort({
       createdAt: -1,
     });

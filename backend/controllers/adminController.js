@@ -3,8 +3,10 @@ const Question = require("../models/Question");
 const QuizResult = require("../models/QuizResult");
 const Skill = require("../models/Skill");
 const Company = require("../models/Company");
+const InterviewSession = require("../models/InterviewSession");
 const defaultCompanies = require("../data/defaultCompanies");
 const bcrypt = require("bcryptjs");
+const { buildActivitySummary } = require("../utils/activityTracker");
 
 let defaultCompaniesEnsured = false;
 
@@ -154,8 +156,10 @@ exports.getOverview = async (req, res) => {
       resultCount,
       skillCount,
       companyCount,
+      interviewCount,
       users,
       results,
+      interviews,
       questions,
       skills,
       companies,
@@ -165,11 +169,16 @@ exports.getOverview = async (req, res) => {
       QuizResult.countDocuments(),
       Skill.countDocuments(),
       Company.countDocuments(),
+      InterviewSession.countDocuments(),
       User.find()
-        .select("name email role createdAt")
+        .select("name email role createdAt badges activityLog")
         .sort({ createdAt: -1 })
         .limit(8),
       QuizResult.find()
+        .populate("userId", "name email")
+        .sort({ createdAt: -1 })
+        .limit(10),
+      InterviewSession.find()
         .populate("userId", "name email")
         .sort({ createdAt: -1 })
         .limit(10),
@@ -178,6 +187,55 @@ exports.getOverview = async (req, res) => {
       Company.find().sort({ updatedAt: -1, _id: -1 }).limit(12),
     ]);
 
+    const fullUsers = await User.find().select("name role badges activityLog");
+    const allResults = await QuizResult.find().populate("userId", "name email");
+    const allInterviews = await InterviewSession.find().populate("userId", "name email");
+
+    const quizPercentages = allResults.map((item) =>
+      item.total ? Math.round((item.score / item.total) * 100) : 0,
+    );
+    const interviewScores = allInterviews.map((item) => Math.round(item.overallScore || 0));
+    const averageQuizScore = quizPercentages.length
+      ? Math.round(quizPercentages.reduce((sum, item) => sum + item, 0) / quizPercentages.length)
+      : 0;
+    const averageInterviewScore = interviewScores.length
+      ? Math.round(interviewScores.reduce((sum, item) => sum + item, 0) / interviewScores.length)
+      : 0;
+    const combinedAverage = allResults.length || allInterviews.length
+      ? Math.round(averageQuizScore * 0.65 + averageInterviewScore * 0.35)
+      : 0;
+
+    const latestResultsByUser = new Map();
+    allResults
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .forEach((item) => {
+        const key = String(item.userId?._id || item.userId);
+        if (!latestResultsByUser.has(key)) {
+          latestResultsByUser.set(key, item);
+        }
+      });
+
+    const jobReadyStudents = [...latestResultsByUser.values()].filter((item) => {
+      const readiness = item.report?.readinessScore || (item.total ? Math.round((item.score / item.total) * 100) : 0);
+      return readiness >= 90;
+    }).length;
+
+    const engagementLeaders = fullUsers
+      .filter((item) => item.role === "student")
+      .map((item) => {
+        const summary = buildActivitySummary(item.activityLog || []);
+        return {
+          id: item._id,
+          name: item.name,
+          currentStreak: summary.currentStreak,
+          longestStreak: summary.longestStreak,
+          activeDays: summary.totalActiveDays,
+          badges: item.badges || [],
+        };
+      })
+      .sort((a, b) => b.currentStreak - a.currentStreak || b.activeDays - a.activeDays)
+      .slice(0, 8);
+
     res.json({
       stats: {
         userCount,
@@ -185,9 +243,18 @@ exports.getOverview = async (req, res) => {
         resultCount,
         skillCount,
         companyCount,
+        interviewCount,
+      },
+      analytics: {
+        averageQuizScore,
+        averageInterviewScore,
+        combinedAverage,
+        jobReadyStudents,
+        engagementLeaders,
       },
       users,
       results,
+      interviews,
       questions,
       skills,
       companies,

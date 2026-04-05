@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { addActivityToUser, syncEngagementBadges } = require("../utils/activityTracker");
 
 const resolveRole = (email) => {
   const adminEmails = (process.env.ADMIN_EMAILS || "")
@@ -54,6 +55,9 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       role: resolvedRole,
     });
+
+    addActivityToUser(user, "login");
+    syncEngagementBadges(user);
 
     await user.save();
 
@@ -139,8 +143,11 @@ exports.login = async (req, res) => {
 
     if (!user.role) {
       user.role = role;
-      await user.save();
     }
+
+    addActivityToUser(user, "login");
+    syncEngagementBadges(user);
+    await user.save();
 
     res.json(buildAuthResponse(user, role));
   } catch (error) {
@@ -176,6 +183,31 @@ exports.loginAdmin = async (req, res) => {
     }
 
     res.json(buildAuthResponse(user, "admin"));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        points: user.points,
+        badges: user.badges,
+        totalQuizzes: user.totalQuizzes,
+        createdAt: user.createdAt,
+      },
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

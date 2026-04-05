@@ -2,8 +2,10 @@ const Question = require("../models/Question");
 const QuizResult = require("../models/QuizResult");
 const User = require("../models/User");
 const Company = require("../models/Company");
+const InterviewSession = require("../models/InterviewSession");
 const defaultCompanies = require("../data/defaultCompanies");
 const { fetchLiveMarketTrends } = require("../services/marketTrendsService");
+const { addActivityToUser, buildActivitySummary, syncEngagementBadges } = require("../utils/activityTracker");
 
 let defaultCompaniesEnsured = false;
 
@@ -189,6 +191,125 @@ const buildWeakAreaDetails = ({ skillBreakdown = [], categoryBreakdown = [] }) =
   ]
     .sort((a, b) => a.percentage - b.percentage || a.label.localeCompare(b.label))
     .slice(0, 6);
+};
+
+const calculatePercentage = (score = 0, total = 0) =>
+  total > 0 ? Math.round((score / total) * 100) : 0;
+
+const getPerformanceLevel = (percentage = 0) => {
+  if (percentage >= 90) return "Job Ready";
+  if (percentage >= 75) return "Advanced";
+  if (percentage >= 50) return "Intermediate";
+  return "Beginner";
+};
+
+const getChanceLabel = (studentScore = 0, demandScore = 0) => {
+  if (studentScore >= demandScore) return "High chance";
+  if (studentScore >= demandScore - 10) return "Medium chance";
+  return "Low chance";
+};
+
+const buildCombinedAnalytics = ({
+  results = [],
+  interviews = [],
+  latestReport = {},
+  companies = [],
+}) => {
+  const quizPercentages = results.map((item) => calculatePercentage(item.score, item.total));
+  const interviewScores = interviews.map((item) => Math.round(item.overallScore || 0));
+  const quizAverage = quizPercentages.length
+    ? Math.round(quizPercentages.reduce((sum, item) => sum + item, 0) / quizPercentages.length)
+    : 0;
+  const interviewAverage = interviewScores.length
+    ? Math.round(interviewScores.reduce((sum, item) => sum + item, 0) / interviewScores.length)
+    : 0;
+  const quizWeight = quizPercentages.length ? 0.65 : 0;
+  const interviewWeight = interviewScores.length ? 0.35 : 0;
+  const totalWeight = quizWeight + interviewWeight;
+  const combinedScore = totalWeight
+    ? Math.round((quizAverage * quizWeight + interviewAverage * interviewWeight) / totalWeight)
+    : 0;
+  const readinessScore =
+    latestReport.readinessScore || Math.round(combinedScore * 0.7 + quizAverage * 0.3);
+  const performanceLevel = getPerformanceLevel(combinedScore);
+  const latestQuiz = results[0];
+  const previousQuiz = results[1];
+  const latestInterviewScore = Math.round(interviews[0]?.overallScore || 0);
+  const previousInterviewScore = Math.round(
+    interviews[1]?.overallScore || interviews[0]?.overallScore || 0,
+  );
+  const currentQuizPercentage = latestQuiz
+    ? calculatePercentage(latestQuiz.score, latestQuiz.total)
+    : 0;
+  const previousQuizPercentage = previousQuiz
+    ? calculatePercentage(previousQuiz.score, previousQuiz.total)
+    : 0;
+  const currentCombinedWeight = (latestQuiz ? 0.65 : 0) + (interviews[0] ? 0.35 : 0);
+  const previousCombinedWeight =
+    (previousQuiz ? 0.65 : 0) + (interviews[1] || interviews[0] ? 0.35 : 0);
+  const currentCombined = latestQuiz
+    ? currentCombinedWeight
+      ? Math.round(
+          (currentQuizPercentage * (latestQuiz ? 0.65 : 0) +
+            latestInterviewScore * (interviews[0] ? 0.35 : 0)) /
+            currentCombinedWeight,
+        )
+      : combinedScore
+    : combinedScore;
+  const previousCombined = previousQuiz
+    ? previousCombinedWeight
+      ? Math.round(
+          (previousQuizPercentage * (previousQuiz ? 0.65 : 0) +
+            previousInterviewScore * (interviews[1] || interviews[0] ? 0.35 : 0)) /
+            previousCombinedWeight,
+        )
+      : null
+    : null;
+  const progressDelta = previousCombined === null ? null : currentCombined - previousCombined;
+
+  const companyRecommendations = companies
+    .slice(0, 5)
+    .map((company) => {
+      const demandScore = calculateCompanyDemandScore(company);
+      const gap = combinedScore - demandScore;
+      const chanceLabel = getChanceLabel(combinedScore, demandScore);
+      const improvementNeeded = Math.max(demandScore - combinedScore, 0);
+
+      return {
+        name: company.name,
+        demandScore,
+        studentScore: combinedScore,
+        chanceLabel,
+        improvementNeeded,
+        benchmarkGap: gap,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.studentScore - b.demandScore - (a.studentScore - a.demandScore),
+    );
+
+  return {
+    quizCount: results.length,
+    interviewCount: interviews.length,
+    quizAverage,
+    interviewAverage,
+    combinedScore,
+    weightedScore: combinedScore,
+    percentage: combinedScore,
+    performanceLevel,
+    readinessScore,
+    progressCheck: {
+      currentCombined,
+      previousCombined,
+      delta: progressDelta,
+    },
+    sectionBreakdown: {
+      quiz: quizAverage,
+      interview: interviewAverage,
+    },
+    companyRecommendations,
+  };
 };
 
 const calculatePercentile = (sortedValues, value) => {
@@ -491,15 +612,18 @@ exports.saveResult = async (req, res) => {
       return;
     }
 
+    const existingBadges = [...(user.badges || [])];
     const attemptCount = (user.totalQuizzes || 0) + 1;
     const { pointsEarned, badgesEarned } = buildGamification({
       score,
       total,
       testType,
       attemptCount,
-      existingBadges: user.badges || [],
+      existingBadges,
     });
 
+    addActivityToUser(user, "quiz");
+    syncEngagementBadges(user);
     const updatedBadges = [...new Set([...(user.badges || []), ...badgesEarned])];
     const totalPoints = (user.points || 0) + pointsEarned;
     const companies = await Company.find().sort({ benchmarkScore: -1, name: 1 });
@@ -546,18 +670,20 @@ exports.saveResult = async (req, res) => {
     user.totalQuizzes = attemptCount;
     await user.save();
 
+    const allNewBadges = updatedBadges.filter((badge) => !existingBadges.includes(badge));
+
     res.json({
       message: "Result saved successfully",
       gamification: {
         pointsEarned,
         totalPoints,
-        badgesEarned,
+        badgesEarned: allNewBadges,
       },
       report: {
         ...enrichedReport,
         pointsEarned,
         totalPoints,
-        badgesEarned,
+        badgesEarned: allNewBadges,
       },
     });
   } catch (error) {
@@ -609,6 +735,7 @@ exports.getSkillTracker = async (req, res) => {
     }
 
     const results = await QuizResult.find({ userId: user._id }).sort({ createdAt: -1 });
+    const interviews = await InterviewSession.find({ userId: user._id }).sort({ createdAt: -1 });
     const allStudentResults = await QuizResult.find().sort({ createdAt: -1 });
     const skillMap = new Map();
     const companies = await Company.find();
@@ -784,10 +911,24 @@ exports.getSkillTracker = async (req, res) => {
     const industryTrends = await fetchLiveMarketTrends(
       companies.sort((a, b) => (b.benchmarkScore || 0) - (a.benchmarkScore || 0)),
     );
+    const activitySummary = buildActivitySummary(user.activityLog || []);
+    const combinedAnalytics = buildCombinedAnalytics({
+      results,
+      interviews,
+      latestReport: results[0]?.report || {},
+      companies,
+    });
 
     res.json({
       trackedSkills,
       recommendedFocus,
+      userStats: {
+        points: user.points || 0,
+        badges: user.badges || [],
+        totalQuizzes: user.totalQuizzes || 0,
+      },
+      activitySummary,
+      combinedAnalytics,
       peerComparison: {
         cohortSize: peerResults.length,
         averageScore: peerAverage,

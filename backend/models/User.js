@@ -1,5 +1,25 @@
 const mongoose = require("mongoose");
 
+const activitySchema = new mongoose.Schema(
+  {
+    dayKey: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    type: {
+      type: String,
+      enum: ["login", "quiz", "interview"],
+      default: "login",
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false },
+);
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -36,6 +56,11 @@ const userSchema = new mongoose.Schema({
   totalQuizzes: {
     type: Number,
     default: 0,
+  },
+
+  activityLog: {
+    type: [activitySchema],
+    default: [],
   },
 
   createdAt: {
