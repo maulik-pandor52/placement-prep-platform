@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import PrepEasyLogo from "../components/PrepEasyLogo";
+import { authService } from "../services/authService";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/admin/login", {
+      const res = await authService.adminLogin({
         email: email.trim(),
         password,
       });
@@ -41,37 +41,34 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="admin-canvas px-4 py-10 text-slate-100">
-      <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="admin-panel p-10">
+    <div className="auth-shell">
+      <div className="auth-wrap">
+        <section className="auth-feature-panel">
           <PrepEasyLogo
-            subtitle="Admin control for content, companies, and readiness data."
+            subtitle="Protected access to content operations, analytics oversight, and platform governance."
             textClassName="text-white"
-            subtextClassName="text-slate-300"
+            subtextClassName="text-slate-100/80"
           />
-          <p className="mt-6 text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">
-            Admin Access
-          </p>
-          <h1 className="mt-5 text-5xl font-black leading-tight">
-            Control the platform from a dedicated admin space.
+          <div className="mt-6 admin-badge">Admin Access</div>
+          <h1 className="mt-5 text-5xl font-black leading-tight text-white">
+            A cleaner control center for managing the entire PrepEasy platform.
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-slate-300">
-            Sign in with an admin-approved email to manage the full question bank,
-            skills, companies, and platform activity.
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-100/82">
+            Sign in with a trusted admin account to manage quiz content, skills, companies, and platform-wide engagement without crowding operations into one messy screen.
           </p>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <FeatureCard title="Questions" text="Create, update, and remove quiz content." />
-            <FeatureCard title="Skills" text="Maintain the skill catalog used across reports." />
-            <FeatureCard title="Companies" text="Manage company profiles and focus areas." />
+          <div className="auth-feature-grid">
+            <FeatureCard title="Question Bank" text="Create and maintain structured assessment content." />
+            <FeatureCard title="Skill Catalog" text="Keep skills aligned with reports, analytics, and company matching." />
+            <FeatureCard title="Company Profiles" text="Track demand, focus skills, and readiness targets in one place." />
           </div>
         </section>
 
-        <section className="admin-card p-8 text-slate-100">
-          <PrepEasyLogo subtitle="Admin sign in for PrepEasy" compact />
-          <h2 className="mt-4 text-3xl font-bold text-white">Admin Sign In</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Sign in with an existing admin account created through invite code or admin access.
+        <section className="auth-form-panel">
+          <div className="admin-badge">Admin Sign In</div>
+          <h2 className="mt-5 text-3xl font-black text-white">Open the admin workspace</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-400">
+            Use an existing admin account created through invite-code signup or internal admin access.
           </p>
 
           {error ? (
@@ -99,13 +96,13 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className={`admin-btn w-full ${
-                loading ? "cursor-wait opacity-70" : ""
-              }`}
+              className={`admin-btn w-full ${loading ? "cursor-wait opacity-70" : ""}`}
             >
-              {loading ? "Signing in..." : "Sign In to Admin"}
+              {loading ? "Signing in..." : "Enter Admin Workspace"}
             </button>
           </form>
+
+          <div className="mt-8 fade-divider" />
 
           <div className="mt-6 space-y-3 text-sm text-slate-400">
             <p>
@@ -138,7 +135,7 @@ function Field({ label, ...props }) {
 
 function FeatureCard({ title, text }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="auth-mini-card">
       <div className="text-lg font-semibold text-white">{title}</div>
       <p className="mt-2 text-sm text-slate-300">{text}</p>
     </div>

@@ -1,6 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import StudentLayout from "../components/StudentLayout";
 import useStudentPerformance from "../components/useStudentPerformance";
+import {
+  SkeletonPanel,
+  SkeletonSplitLayout,
+} from "../components/dashboard/DashboardSkeletons";
 
 export default function StudentInsightsPage() {
   const navigate = useNavigate();
@@ -22,10 +26,22 @@ export default function StudentInsightsPage() {
         </>
       }
     >
+      {loading ? (
+        <>
+          <SkeletonSplitLayout />
+          <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <SkeletonPanel lines={4} />
+            <SkeletonPanel lines={4} />
+          </div>
+        </>
+      ) : null}
+
+      {!loading ? (
+        <>
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <section className="section-panel">
           <h2 className="panel-title">Skill tracker</h2>
-          <div className="mt-5 space-y-4">
+          <div className="panel-scroll mt-5 space-y-4 pr-2">
             {skillTracker.trackedSkills?.slice(0, 6).map((skill) => (
               <ProgressCard
                 key={skill.label}
@@ -42,7 +58,7 @@ export default function StudentInsightsPage() {
 
         <section className="section-panel">
           <h2 className="panel-title">Weak area priority</h2>
-          <div className="mt-5 space-y-3">
+          <div className="panel-scroll mt-5 space-y-3 pr-2">
             {(latestReport.weakAreaDetails?.length
               ? latestReport.weakAreaDetails.slice(0, 5)
               : []).map((item) => (
@@ -98,7 +114,7 @@ export default function StudentInsightsPage() {
               {latestReport.readinessSummary || "Complete a quiz to generate your readiness summary."}
             </p>
           </div>
-          <div className="mt-5 space-y-3">
+          <div className="panel-scroll mt-5 space-y-3 pr-2">
             {(latestReport.improvementRoadmap?.length
               ? latestReport.improvementRoadmap
               : ["Your roadmap will appear after your next completed quiz."]).map((item) => (
@@ -113,7 +129,7 @@ export default function StudentInsightsPage() {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
         <section className="section-panel">
           <h2 className="panel-title">Skill gap analysis</h2>
-          <div className="mt-5 space-y-4">
+          <div className="panel-scroll mt-5 space-y-4 pr-2">
             {(latestReport.skillGapAnalysis?.length ? latestReport.skillGapAnalysis : []).map((item) => (
               <ProgressCard
                 key={item.label}
@@ -130,7 +146,7 @@ export default function StudentInsightsPage() {
 
         <section className="section-panel">
           <h2 className="panel-title">Category insights</h2>
-          <div className="mt-5 space-y-3">
+          <div className="panel-scroll mt-5 space-y-3 pr-2">
             {(latestReport.categoryInsights?.length
               ? latestReport.categoryInsights
               : ["Category-level insight will appear after your next graded quiz."]).map((item) => (
@@ -142,7 +158,8 @@ export default function StudentInsightsPage() {
         </section>
       </div>
 
-      {loading ? <div className="mt-6 empty-state">Refreshing insight data...</div> : null}
+        </>
+      ) : null}
     </StudentLayout>
   );
 }

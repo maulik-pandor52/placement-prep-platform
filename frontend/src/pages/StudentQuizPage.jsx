@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import StudentLayout from "../components/StudentLayout";
+import { quizService } from "../services/quizService";
 
 function buildAreaBreakdown(items, key) {
   const stats = new Map();
@@ -126,10 +126,7 @@ export default function StudentQuizPage() {
         if (activeCategory) params.category = activeCategory;
         if (activeCompany) params.company = activeCompany;
 
-        const res = await axios.get("http://localhost:5000/api/quiz/questions", {
-          headers: { Authorization: `Bearer ${token}` },
-          params,
-        });
+        const res = await quizService.getQuestions(params);
         setQuestions(res.data);
       } catch (error) {
         if (error.response?.status === 401 || error.response?.status === 403) {
@@ -171,20 +168,14 @@ export default function StudentQuizPage() {
     const report = buildInitialReport(finalAnsweredQuestions);
     setIsSubmitting(true);
 
-    const token = localStorage.getItem("token");
-
-    axios
-      .post(
-        "http://localhost:5000/api/quiz/result",
-        {
-          score: finalScore,
-          total: questions.length,
-          report,
-          testType: isCompanyTest ? "company" : "initial",
-          company: activeCompany,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      )
+    quizService
+      .saveResult({
+        score: finalScore,
+        total: questions.length,
+        report,
+        testType: isCompanyTest ? "company" : "initial",
+        company: activeCompany,
+      })
       .then((res) => {
         const gamification = res.data?.gamification || {};
         const enrichedReport = res.data?.report || report;

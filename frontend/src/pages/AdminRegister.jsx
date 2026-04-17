@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import PrepEasyLogo from "../components/PrepEasyLogo";
+import { authService } from "../services/authService";
 
 export default function AdminRegister() {
   const navigate = useNavigate();
@@ -27,15 +27,12 @@ export default function AdminRegister() {
     setSuccess("");
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/admin/register",
-        {
-          name: form.name.trim(),
-          email: form.email.trim(),
-          password: form.password,
-          inviteCode: form.inviteCode,
-        },
-      );
+      const res = await authService.adminRegister({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        inviteCode: form.inviteCode,
+      });
 
       setSuccess(res.data.message || "Admin account created.");
       setTimeout(() => {
@@ -53,42 +50,43 @@ export default function AdminRegister() {
   };
 
   return (
-    <div className="admin-canvas px-4 py-10">
-      <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-        <section className="admin-panel p-10 text-white">
+    <div className="auth-shell">
+      <div className="auth-wrap lg:grid-cols-[1.02fr_0.98fr]">
+        <section className="auth-feature-panel">
           <PrepEasyLogo
-            subtitle="Set up protected admin access for PrepEasy."
+            subtitle="Set up protected access for the admin team with a cleaner onboarding surface."
             textClassName="text-white"
-            subtextClassName="text-slate-300"
+            subtextClassName="text-slate-100/80"
           />
-          <p className="mt-6 text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">
-            Admin Signup
-          </p>
-          <h1 className="mt-5 text-5xl font-black leading-tight">
-            Create a protected admin account for the management team.
+          <div className="mt-6 admin-badge">Admin Signup</div>
+          <h1 className="mt-5 text-5xl font-black leading-tight text-white">
+            Create a secure admin account for the people who manage PrepEasy.
           </h1>
-          <p className="mt-5 text-lg text-slate-300">
-            New admins can register here with the shared admin invite code. Once
-            created, the account is stored in MongoDB and can sign in normally.
+          <p className="mt-5 text-base leading-8 text-slate-100/82">
+            New admins can register here with the shared invite code, then sign in normally to maintain questions, skills, companies, and platform activity.
           </p>
 
-          <div className="mt-10 admin-card-muted p-5">
-            <div className="text-sm uppercase tracking-[0.28em] text-cyan-300">
-              What you get
+          <div className="mt-8 space-y-4">
+            <div className="auth-mini-card">
+              <div className="text-lg font-semibold text-white">Question operations</div>
+              <p className="mt-2 text-sm leading-7 text-slate-100/80">Manage assessment content from a dedicated admin workflow.</p>
             </div>
-            <ul className="mt-4 space-y-3 text-sm text-slate-200">
-              <li>Full CRUD for questions</li>
-              <li>Dedicated skill catalog management</li>
-              <li>Company profile and focus-skill management</li>
-            </ul>
+            <div className="auth-mini-card">
+              <div className="text-lg font-semibold text-white">Skill and company governance</div>
+              <p className="mt-2 text-sm leading-7 text-slate-100/80">Keep matching logic and platform readiness data consistent.</p>
+            </div>
+            <div className="auth-mini-card">
+              <div className="text-lg font-semibold text-white">Scalable access control</div>
+              <p className="mt-2 text-sm leading-7 text-slate-100/80">Create trusted admin accounts without exposing student auth routes.</p>
+            </div>
           </div>
         </section>
 
-        <section className="admin-card p-8">
-          <PrepEasyLogo subtitle="Create an admin account" compact />
-          <h2 className="mt-4 text-3xl font-bold text-white">Create Admin Account</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Enter your admin details and the valid invite code.
+        <section className="auth-form-panel">
+          <div className="admin-badge">Protected Admin Setup</div>
+          <h2 className="mt-5 text-3xl font-black text-white">Create admin account</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-400">
+            Enter the new admin’s details and the valid invite code to save the account securely in the database.
           </p>
 
           {error ? (
@@ -139,13 +137,13 @@ export default function AdminRegister() {
             <button
               type="submit"
               disabled={loading}
-              className={`admin-btn w-full ${
-                loading ? "cursor-wait opacity-70" : ""
-              }`}
+              className={`admin-btn w-full ${loading ? "cursor-wait opacity-70" : ""}`}
             >
               {loading ? "Creating account..." : "Create Admin Account"}
             </button>
           </form>
+
+          <div className="mt-8 fade-divider" />
 
           <div className="mt-6 space-y-3 text-sm text-slate-400">
             <p>

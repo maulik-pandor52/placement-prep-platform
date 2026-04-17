@@ -1,13 +1,57 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { interviewService } from "../services/interviewService";
+import { quizService } from "../services/quizService";
 
 export default function useStudentPerformance({ navigate }) {
-  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const defaultCombinedAnalytics = {
+    quizCount: 0,
+    interviewCount: 0,
+    quizAverage: 0,
+    interviewAverage: 0,
+    combinedScore: 0,
+    weightedScore: 0,
+    percentage: 0,
+    performanceLevel: "Beginner",
+    readinessScore: 0,
+    progressCheck: {
+      currentCombined: 0,
+      previousCombined: null,
+      delta: null,
+    },
+    sectionBreakdown: {
+      quiz: 0,
+      interview: 0,
+    },
+    companyRecommendations: [],
+  };
+
+  const defaultActivitySummary = {
+    totalActiveDays: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastActiveDay: "",
+    calendar: [],
+  };
+
+  let currentUser = null;
+
+  try {
+    currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    currentUser = null;
+  }
   const [results, setResults] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [skillTracker, setSkillTracker] = useState({
     trackedSkills: [],
     recommendedFocus: [],
+    userStats: {
+      points: 0,
+      badges: [],
+      totalQuizzes: 0,
+    },
+    activitySummary: defaultActivitySummary,
+    combinedAnalytics: defaultCombinedAnalytics,
     peerComparison: {
       cohortSize: 0,
       averageScore: 0,
@@ -36,60 +80,101 @@ export default function useStudentPerformance({ navigate }) {
         setLoading(true);
         setError(null);
 
-        const [resultsRes, leaderboardRes, skillTrackerRes, interviewHistoryRes] =
-          await Promise.all([
-            axios.get("http://localhost:5000/api/quiz/results", {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 10000,
-            }),
-            axios.get("http://localhost:5000/api/quiz/leaderboard", {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 10000,
-            }),
-            axios.get("http://localhost:5000/api/quiz/skill-tracker", {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 10000,
-            }),
-            axios.get("http://localhost:5000/api/interview/history", {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 10000,
-            }),
-          ]);
-
-        const sorted = [...(resultsRes.data || [])].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-        );
-
-        setResults(sorted);
-        setLeaderboard(leaderboardRes.data || []);
-        setSkillTracker(
-          skillTrackerRes.data || {
-            trackedSkills: [],
-            recommendedFocus: [],
-            peerComparison: {
-              cohortSize: 0,
-              averageScore: 0,
-              yourScore: 0,
-              percentile: 0,
-              rank: 0,
-              strengthsVsPeers: [],
-              needsVsPeers: [],
-              skillComparison: [],
-            },
-            industryTrends: [],
+        const defaultSkillTracker = {
+          trackedSkills: [],
+          recommendedFocus: [],
+          userStats: {
+            points: 0,
+            badges: [],
+            totalQuizzes: 0,
           },
+          activitySummary: defaultActivitySummary,
+          combinedAnalytics: defaultCombinedAnalytics,
+          peerComparison: {
+            cohortSize: 0,
+            averageScore: 0,
+            yourScore: 0,
+            percentile: 0,
+            rank: 0,
+            strengthsVsPeers: [],
+            needsVsPeers: [],
+            skillComparison: [],
+          },
+          industryTrends: [],
+        };
+
+        const requests = await Promise.allSettled([
+          quizService.getResults(),
+          quizService.getLeaderboard(),
+          quizService.getSkillTracker(),
+          interviewService.getHistory(),
+        ]);
+
+        const [resultsRes, leaderboardRes, skillTrackerRes, interviewHistoryRes] = requests;
+
+        const authFailures = requests.filter(
+          (request) =>
+            request.status === "rejected" &&
+            (request.reason?.response?.status === 401 ||
+              request.reason?.response?.status === 403),
         );
-        setInterviewHistory(interviewHistoryRes.data || []);
-      } catch (err) {
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          localStorage.removeItem("token");
-          navigate("/login", { replace: true });
+
+        const successfulRequests = requests.filter(
+          (request) => request.status === "fulfilled",
+        );
+
+        if (authFailures.length && successfulRequests.length === 0) {
+          setResults([]);
+          setLeaderboard([]);
+          setInterviewHistory([]);
+          setSkillTracker(defaultSkillTracker);
+          setError("Your session data could not be verified. Please refresh once or sign in again if the issue continues.");
+          return;
+        }
+
+        const partialErrors = [];
+
+        if (resultsRes.status === "fulfilled") {
+          const sorted = [...(resultsRes.value.data || [])].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+          );
+          setResults(sorted);
         } else {
+          setResults([]);
+          partialErrors.push("quiz results");
+        }
+
+        if (leaderboardRes.status === "fulfilled") {
+          setLeaderboard(leaderboardRes.value.data || []);
+        } else {
+          setLeaderboard([]);
+          partialErrors.push("leaderboard");
+        }
+
+        if (skillTrackerRes.status === "fulfilled") {
+          setSkillTracker(skillTrackerRes.value.data || defaultSkillTracker);
+        } else {
+          setSkillTracker(defaultSkillTracker);
+          partialErrors.push("performance analytics");
+        }
+
+        if (interviewHistoryRes.status === "fulfilled") {
+          setInterviewHistory(interviewHistoryRes.value.data || []);
+        } else {
+          setInterviewHistory([]);
+          partialErrors.push("interview history");
+        }
+
+        if (partialErrors.length) {
           setError(
-            err.response?.data?.message ||
-              "Could not load your dashboard. Please try again later.",
+            `Some dashboard sections could not load: ${partialErrors.join(", ")}.`,
           );
         }
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            "Could not load your dashboard. Please try again later.",
+        );
       } finally {
         setLoading(false);
       }
@@ -133,8 +218,33 @@ export default function useStudentPerformance({ navigate }) {
   }, [results]);
 
   const latestReport = results[0]?.report || {};
-  const latestPoints = latestReport.totalPoints || currentUser?.points || 0;
-  const latestBadges = latestReport.badgesEarned || currentUser?.badges || [];
+  const safeUserStats = skillTracker?.userStats || {
+    points: 0,
+    badges: [],
+    totalQuizzes: 0,
+  };
+  const safeActivitySummary = {
+    ...defaultActivitySummary,
+    ...(skillTracker?.activitySummary || {}),
+  };
+  const safeCombinedAnalytics = {
+    ...defaultCombinedAnalytics,
+    ...(skillTracker?.combinedAnalytics || {}),
+    progressCheck: {
+      ...defaultCombinedAnalytics.progressCheck,
+      ...(skillTracker?.combinedAnalytics?.progressCheck || {}),
+    },
+    sectionBreakdown: {
+      ...defaultCombinedAnalytics.sectionBreakdown,
+      ...(skillTracker?.combinedAnalytics?.sectionBreakdown || {}),
+    },
+    companyRecommendations:
+      skillTracker?.combinedAnalytics?.companyRecommendations || [],
+  };
+  const latestPoints =
+    latestReport.totalPoints || safeUserStats.points || currentUser?.points || 0;
+  const latestBadges =
+    safeUserStats.badges || latestReport.badgesEarned || currentUser?.badges || [];
 
   return {
     currentUser,
@@ -148,5 +258,7 @@ export default function useStudentPerformance({ navigate }) {
     latestReport,
     latestPoints,
     latestBadges,
+    activitySummary: safeActivitySummary,
+    combinedAnalytics: safeCombinedAnalytics,
   };
 }

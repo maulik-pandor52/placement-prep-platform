@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import AdminLayout from "../components/AdminLayout";
+import { adminService } from "../services/adminService";
 
 const emptyForm = {
   name: "",
@@ -21,9 +21,7 @@ export default function AdminSkills() {
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/admin/skills", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await adminService.getSkills();
         setSkills(res.data);
       } catch (err) {
         setError(
@@ -51,21 +49,14 @@ export default function AdminSkills() {
     setSuccess("");
 
     try {
-      const headers = { Authorization: `Bearer ${token}` };
       if (editingId) {
-        const res = await axios.put(
-          `http://localhost:5000/api/admin/skills/${editingId}`,
-          form,
-          { headers },
-        );
+        const res = await adminService.updateSkill(editingId, form);
         setSkills((prev) =>
           prev.map((item) => (item._id === editingId ? res.data : item)),
         );
         setSuccess("Skill updated successfully.");
       } else {
-        const res = await axios.post("http://localhost:5000/api/admin/skills", form, {
-          headers,
-        });
+        const res = await adminService.createSkill(form);
         setSkills((prev) => [...prev, res.data].sort((a, b) => a.name.localeCompare(b.name)));
         setSuccess("Skill created successfully.");
       }
@@ -84,9 +75,7 @@ export default function AdminSkills() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/skills/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await adminService.deleteSkill(id);
       setSkills((prev) => prev.filter((item) => item._id !== id));
       if (editingId === id) {
         resetForm();
@@ -171,12 +160,13 @@ export default function AdminSkills() {
           </form>
         </section>
 
-        <section className="admin-card p-6">
+        <section className="admin-card flex min-h-[720px] flex-col p-6">
           <h3 className="text-xl font-semibold text-white">Skill Catalog</h3>
           {loading ? (
             <p className="mt-4 text-slate-400">Loading skills...</p>
           ) : (
-            <div className="mt-4 space-y-4">
+            <div className="panel-scroll mt-4 flex-1 pr-2">
+              <div className="space-y-4">
               {skills.map((item) => (
                 <div key={item._id} className="admin-card-muted p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -213,6 +203,7 @@ export default function AdminSkills() {
                   </p>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </section>

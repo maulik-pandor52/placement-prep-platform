@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import PrepEasyLogo from "../components/PrepEasyLogo";
+import { authService } from "../services/authService";
 
 export default function StudentLoginPage() {
   const navigate = useNavigate();
@@ -21,14 +21,7 @@ export default function StudentLoginPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password },
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 8000,
-        },
-      );
+      const res = await authService.studentLogin({ email, password });
 
       const { token, user } = res.data;
 
@@ -59,93 +52,86 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <div className="app-canvas">
-      <div className="page-wrap">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <section className="hero-panel px-8 py-10 sm:px-10 sm:py-12">
-            <PrepEasyLogo
-              subtitle="Smart placement preparation with one calm, focused workspace."
-              textClassName="text-white"
-              subtextClassName="text-slate-100/80"
-            />
-            <div className="soft-badge">Student Login</div>
-            <h1 className="mt-5 text-5xl font-black leading-tight">
-              Prepare with a platform that feels focused, modern, and easy to use.
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-8 text-slate-100/85">
-              Track quiz growth, view your report, practice company-specific tests,
-              and build confidence with mock interviews in one clean workspace.
-            </p>
+    <div className="auth-shell">
+      <div className="auth-wrap">
+        <section className="auth-feature-panel">
+          <PrepEasyLogo
+            subtitle="Modern placement preparation with focused analytics, company readiness, and interview practice."
+            textClassName="text-white"
+            subtextClassName="text-slate-100/80"
+          />
+          <div className="mt-6 soft-badge">Student Sign In</div>
+          <h1 className="mt-5 text-5xl font-black leading-tight text-white">
+            A cleaner frontend for smarter practice and faster decisions.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-100/82">
+            PrepEasy keeps your quiz performance, company opportunities, activity streaks, and interview readiness inside one polished workspace.
+          </p>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <FeatureCard title="Smart Reports" text="See strengths, weaknesses, and next steps." />
-              <FeatureCard title="Company Prep" text="Take targeted tests based on suggested companies." />
-              <FeatureCard title="Progress Flow" text="Keep all your attempts and rewards in one place." />
+          <div className="auth-feature-grid">
+            <FeatureCard title="Readable Insights" text="Understand score trends and weak areas without dashboard clutter." />
+            <FeatureCard title="Company Readiness" text="See fit, benchmark gaps, and suggested next tests clearly." />
+            <FeatureCard title="Momentum Tracking" text="Keep streaks, badges, and practice history visible in one flow." />
+          </div>
+        </section>
+
+        <section className="auth-form-panel">
+          <div className="soft-badge">Welcome Back</div>
+          <h2 className="mt-5 text-3xl font-black text-slate-50">Sign in to your student workspace</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-400">
+            Enter your student account details to reopen your dashboard, latest analytics, and profile progress.
+          </p>
+
+          {error ? (
+            <div className="mt-6 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {error}
             </div>
-          </section>
+          ) : null}
 
-          <section className="section-panel p-8 sm:p-10">
-            <PrepEasyLogo
-              subtitle="Sign in to continue your preparation."
-              compact
+          <form onSubmit={handleLogin} className="mt-8 space-y-5">
+            <Field
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value.trim())}
+              placeholder="you@example.com"
+              autoComplete="email"
             />
-            <div className="soft-badge">Welcome Back</div>
-            <h2 className="mt-4 text-3xl font-black text-slate-100">Sign in to continue</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Use your student account to open your dashboard and resume practice.
+            <Field
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              autoComplete="current-password"
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`primary-btn w-full ${loading ? "cursor-wait opacity-70" : ""}`}
+            >
+              {loading ? "Signing in..." : "Enter Workspace"}
+            </button>
+          </form>
+
+          <div className="mt-8 fade-divider" />
+
+          <div className="mt-6 space-y-3 text-sm text-slate-400">
+            <p>
+              Don&apos;t have an account?{" "}
+              <Link to="/register" className="font-semibold text-cyan-300 hover:underline">
+                Create one now
+              </Link>
             </p>
-
-            {error ? (
-              <div className="mt-6 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-                {error}
-              </div>
-            ) : null}
-
-            <form onSubmit={handleLogin} className="mt-8 space-y-5">
-              <Field
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value.trim())}
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-              <Field
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                autoComplete="current-password"
-              />
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={`primary-btn w-full ${
-                  loading ? "cursor-wait opacity-70" : ""
-                }`}
-              >
-                {loading ? "Signing in..." : "Sign In"}
-              </button>
-            </form>
-
-            <div className="mt-6 space-y-3 text-sm text-slate-400">
-              <p>
-                Don&apos;t have an account?{" "}
-                <Link to="/register" className="font-semibold text-cyan-300 hover:underline">
-                  Create one now
-                </Link>
-              </p>
-              <p>
-                Admin access?{" "}
-                <Link to="/admin/login" className="font-semibold text-slate-100 hover:underline">
-                  Go to admin sign in
-                </Link>
-              </p>
-            </div>
-          </section>
-        </div>
+            <p>
+              Admin access?{" "}
+              <Link to="/admin/login" className="font-semibold text-slate-100 hover:underline">
+                Open admin sign in
+              </Link>
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -162,7 +148,7 @@ function Field({ label, ...props }) {
 
 function FeatureCard({ title, text }) {
   return (
-    <div className="rounded-[24px] border border-white/12 bg-white/8 p-4">
+    <div className="auth-mini-card">
       <div className="text-lg font-semibold text-white">{title}</div>
       <p className="mt-2 text-sm text-slate-100/80">{text}</p>
     </div>

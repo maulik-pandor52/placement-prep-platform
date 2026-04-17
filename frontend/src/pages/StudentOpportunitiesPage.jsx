@@ -1,6 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import StudentLayout from "../components/StudentLayout";
 import useStudentPerformance from "../components/useStudentPerformance";
+import {
+  CompanySuggestionList,
+  DashboardSection,
+  ScrollableList,
+} from "../components/dashboard/InsightModules";
 
 export default function StudentOpportunitiesPage() {
   const navigate = useNavigate();
@@ -23,108 +28,100 @@ export default function StudentOpportunitiesPage() {
         </>
       }
     >
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <section className="section-panel">
-          <h2 className="panel-title">Suggested companies</h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            {(latestReport.companySuggestions?.length
-              ? latestReport.companySuggestions
-              : []).map((company) => (
-              <div key={company.name} className="student-card">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-lg font-semibold text-slate-100">{company.name}</div>
-                  <div className="student-chip">{company.selectionChance || 0}% chance</div>
-                </div>
-                <p className="mt-3 text-sm leading-7 text-slate-400">{company.matchReason}</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <StatCard label="Demand Score" value={`${company.demandScore || 0}%`} />
-                  <StatCard
-                    label="Next Milestone"
-                    value={company.nextMilestone || "Keep improving"}
-                    compact
-                  />
-                </div>
-                <Link
-                  to={`/quiz?company=${encodeURIComponent(company.name)}`}
-                  className="primary-btn mt-4"
-                >
-                  Take {company.name} Test
-                </Link>
-              </div>
-            ))}
-            {!latestReport.companySuggestions?.length ? (
-              <div className="empty-state md:col-span-2">
-                Finish a scored quiz to unlock company suggestions.
-              </div>
-            ) : null}
-          </div>
-        </section>
+      <div className="dashboard-split">
+        <div className="dashboard-stack">
+          <DashboardSection
+            title="Suggested companies"
+            subtitle="Choose targeted tests from a cleaner recommendation grid built for larger company datasets."
+            kicker="Recommendations"
+            className="overflow-hidden"
+          >
+            <CompanySuggestionList
+              companies={latestReport.companySuggestions || []}
+              emptyText="Finish a scored quiz to unlock company suggestions."
+              actionLabel="Take {company} Test"
+              layout="rows"
+              scroll
+            />
+          </DashboardSection>
 
-        <section className="section-panel">
-          <h2 className="panel-title">Market demand</h2>
-          <div className="mt-5 space-y-4">
-            {(skillTracker.industryTrends || []).slice(0, 4).map((trend) => (
-              <div key={trend.company} className="student-card">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-slate-100">{trend.company}</div>
-                    <div className="mt-1 text-sm text-slate-400">{trend.industry}</div>
+          <DashboardSection
+            title="Interview readiness"
+            subtitle="Keep recent interview sessions visible while preventing the page from stretching endlessly."
+            className="mt-6"
+            scroll
+          >
+            <div className="panel-stack">
+              {interviewHistory.length ? (
+                interviewHistory.slice(0, 8).map((item) => (
+                  <div key={item._id} className="student-card">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-semibold text-slate-100">
+                        {item.company || "General"} / {item.role || "Interview"}
+                      </div>
+                      <div className="student-chip">{item.overallScore || 0}%</div>
+                    </div>
+                    <div className="mt-3 text-sm text-slate-400">
+                      Confidence {item.confidenceScore || 0}% / Delivery {item.deliveryScore || 0}%
+                    </div>
                   </div>
-                  <div className="student-chip">{trend.growthLabel}</div>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <StatCard label="Top Skill" value={trend.topSkill || "General"} compact />
-                  <StatCard label="Demand Score" value={`${trend.demandScore || 0}%`} />
-                </div>
-                <div className="mt-4 text-sm leading-7 text-slate-400">
-                  Benchmark {trend.benchmarkScore || 0}% /{" "}
-                  {trend.liveOpenings ? `Live openings ${trend.liveOpenings}` : "Live openings unavailable"} /{" "}
-                  {trend.averageSalary ? `Avg salary ${trend.averageSalary}` : "Salary unavailable"}
-                </div>
-              </div>
-            ))}
-            {!skillTracker.industryTrends?.length ? (
-              <div className="empty-state">Industry-trend data will appear here.</div>
-            ) : null}
-          </div>
-        </section>
-      </div>
+                ))
+              ) : (
+                <div className="empty-state">Practice a mock interview to see readiness here.</div>
+              )}
+            </div>
+          </DashboardSection>
+        </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <section className="section-panel">
-          <h2 className="panel-title">Interview readiness</h2>
-          <div className="mt-5 space-y-3">
-            {interviewHistory.slice(0, 4).map((item) => (
-              <div key={item._id} className="student-card">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="font-semibold text-slate-100">
-                    {item.company || "General"} / {item.role || "Interview"}
+        <aside className="dashboard-sidebar">
+          <DashboardSection
+            title="Market demand"
+            subtitle="Industry trends stay in a scrollable side rail so long company data stays manageable."
+            scroll
+          >
+            <ScrollableList
+              items={(skillTracker.industryTrends || []).slice(0, 8)}
+              emptyText="Industry-trend data will appear here."
+              renderItem={(trend) => (
+                <div key={trend.company} className="student-card">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-slate-100">{trend.company}</div>
+                      <div className="mt-1 text-sm text-slate-400">{trend.industry}</div>
+                    </div>
+                    <div className="student-chip">{trend.growthLabel}</div>
                   </div>
-                  <div className="student-chip">{item.overallScore || 0}%</div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <StatCard label="Top Skill" value={trend.topSkill || "General"} compact />
+                    <StatCard label="Demand Score" value={`${trend.demandScore || 0}%`} />
+                  </div>
+                  <div className="mt-4 text-sm leading-7 text-slate-400">
+                    Benchmark {trend.benchmarkScore || 0}% /{" "}
+                    {trend.liveOpenings ? `Live openings ${trend.liveOpenings}` : "Live openings unavailable"} /{" "}
+                    {trend.averageSalary ? `Avg salary ${trend.averageSalary}` : "Salary unavailable"}
+                  </div>
                 </div>
-                <div className="mt-3 text-sm text-slate-400">
-                  Confidence {item.confidenceScore || 0}% / Delivery {item.deliveryScore || 0}%
-                </div>
-              </div>
-            ))}
-            {!interviewHistory.length ? (
-              <div className="empty-state">Practice a mock interview to see readiness here.</div>
-            ) : null}
-          </div>
-        </section>
+              )}
+            />
+          </DashboardSection>
 
-        <section className="section-panel">
-          <h2 className="panel-title">Opportunity roadmap</h2>
-          <div className="mt-5 space-y-3">
-            {(latestReport.improvementRoadmap?.length
-              ? latestReport.improvementRoadmap
-              : ["Your opportunity roadmap will appear after a completed quiz."]).map((item) => (
-              <div key={item} className="student-card text-sm leading-7 text-slate-300">
-                {item}
-              </div>
-            ))}
-          </div>
-        </section>
+          <DashboardSection
+            title="Opportunity roadmap"
+            subtitle="A focused action stack for what to do next."
+            className="mt-6"
+            scroll
+          >
+            <div className="panel-stack">
+              {(latestReport.improvementRoadmap?.length
+                ? latestReport.improvementRoadmap
+                : ["Your opportunity roadmap will appear after a completed quiz."]).map((item) => (
+                <div key={item} className="student-card text-sm leading-7 text-slate-300">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </DashboardSection>
+        </aside>
       </div>
 
       {loading ? <div className="mt-6 empty-state">Refreshing company and market data...</div> : null}

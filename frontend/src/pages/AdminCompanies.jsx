@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import AdminLayout from "../components/AdminLayout";
+import { adminService } from "../services/adminService";
 
 const emptyForm = {
   name: "",
@@ -29,10 +29,9 @@ export default function AdminCompanies() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const headers = { Authorization: `Bearer ${token}` };
         const [companiesRes, skillsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/admin/companies", { headers }),
-          axios.get("http://localhost:5000/api/admin/skills", { headers }),
+          adminService.getCompanies(),
+          adminService.getSkills(),
         ]);
 
         setCompanies(companiesRes.data);
@@ -63,24 +62,14 @@ export default function AdminCompanies() {
     setSuccess("");
 
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-
       if (editingId) {
-        const res = await axios.put(
-          `http://localhost:5000/api/admin/companies/${editingId}`,
-          form,
-          { headers },
-        );
+        const res = await adminService.updateCompany(editingId, form);
         setCompanies((prev) =>
           prev.map((item) => (item._id === editingId ? res.data : item)),
         );
         setSuccess("Company updated successfully.");
       } else {
-        const res = await axios.post(
-          "http://localhost:5000/api/admin/companies",
-          form,
-          { headers },
-        );
+        const res = await adminService.createCompany(form);
         setCompanies((prev) => [...prev, res.data].sort((a, b) => a.name.localeCompare(b.name)));
         setSuccess("Company created successfully.");
       }
@@ -99,9 +88,7 @@ export default function AdminCompanies() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/companies/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await adminService.deleteCompany(id);
       setCompanies((prev) => prev.filter((item) => item._id !== id));
       if (editingId === id) {
         resetForm();
@@ -254,12 +241,13 @@ export default function AdminCompanies() {
           </form>
         </section>
 
-        <section className="admin-card p-6">
+        <section className="admin-card flex min-h-[720px] flex-col p-6">
           <h3 className="text-xl font-semibold text-white">Company Profiles</h3>
           {loading ? (
             <p className="mt-4 text-slate-400">Loading companies...</p>
           ) : (
-            <div className="mt-4 space-y-4">
+            <div className="panel-scroll mt-4 flex-1 pr-2">
+              <div className="space-y-4">
               {companies.map((item) => (
                 <div key={item._id} className="admin-card-muted p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -327,6 +315,7 @@ export default function AdminCompanies() {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </section>

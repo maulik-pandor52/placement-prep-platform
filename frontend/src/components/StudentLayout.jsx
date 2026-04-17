@@ -3,12 +3,12 @@ import { useEffect } from "react";
 import PrepEasyLogo from "./PrepEasyLogo";
 
 const navItems = [
-  { to: "/dashboard", label: "Overview" },
-  { to: "/insights", label: "Insights" },
-  { to: "/opportunities", label: "Opportunities" },
-  { to: "/quiz", label: "Quiz" },
-  { to: "/result", label: "Results" },
-  { to: "/mock-interview", label: "Mock Interview" },
+  { to: "/dashboard", label: "Overview", short: "OV" },
+  { to: "/insights", label: "Insights", short: "IN" },
+  { to: "/opportunities", label: "Opportunities", short: "OP" },
+  { to: "/quiz", label: "Quiz", short: "QZ" },
+  { to: "/mock-interview", label: "Mock Interview", short: "MI" },
+  { to: "/profile", label: "Profile", short: "PR" },
 ];
 
 export default function StudentLayout({
@@ -18,7 +18,13 @@ export default function StudentLayout({
   children,
 }) {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  let user = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    user = null;
+  }
 
   useEffect(() => {
     document.title = title ? `PrepEasy | ${title}` : "PrepEasy";
@@ -32,67 +38,80 @@ export default function StudentLayout({
 
   return (
     <div className="app-canvas">
-      <div className="page-wrap">
-        <header className="surface-panel px-5 py-4 sm:px-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
-              <Link to="/dashboard" className="min-w-[220px]">
-                <div className="soft-badge">PrepEasy Workspace</div>
-                <div className="mt-3">
+      <div className="page-wrap workspace-shell">
+        <div className="workspace-layout">
+          <aside className="workspace-sidebar">
+            <div className="workspace-sidebar-inner">
+              <div className="workspace-brand">
+                <div className="soft-badge">PrepEasy Student</div>
+                <div className="mt-4">
                   <PrepEasyLogo
-                    subtitle="Practice, track progress, and prepare with confidence."
+                    subtitle="One focused place for practice, readiness, and career momentum."
+                    textClassName="text-white"
+                    subtextClassName="text-slate-400"
+                    compact
                   />
                 </div>
-              </Link>
+              </div>
 
-              <nav className="flex flex-wrap gap-2">
+              <nav className="workspace-nav">
                 {navItems.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `rounded-2xl px-4 py-2 text-sm font-semibold transition ${
-                        isActive
-                          ? "bg-gradient-to-r from-violet-500 to-cyan-400 text-slate-950 shadow-lg shadow-violet-500/20"
-                          : "text-slate-300 hover:bg-slate-800/90 hover:text-slate-50"
-                      }`
+                      `workspace-nav-link ${isActive ? "workspace-nav-link-active" : ""}`.trim()
                     }
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                      {item.short}
+                    </span>
                   </NavLink>
                 ))}
               </nav>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              {user?.role === "admin" ? (
-                <Link to="/admin" className="secondary-btn">
-                  Admin Area
-                </Link>
-              ) : null}
-              <button onClick={handleLogout} className="secondary-btn">
-                Logout
-              </button>
+              <div className="student-card mt-auto">
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300">
+                  Workspace User
+                </div>
+                <div className="mt-3 text-lg font-semibold text-slate-100">
+                  {user?.name || "Student"}
+                </div>
+                <div className="mt-1 text-sm text-slate-400">{user?.email || ""}</div>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {user?.role === "admin" ? (
+                    <Link to="/admin" className="ghost-btn">
+                      Admin Area
+                    </Link>
+                  ) : null}
+                  <button onClick={handleLogout} className="secondary-btn">
+                    Logout
+                  </button>
+                </div>
+              </div>
             </div>
+          </aside>
+
+          <div className="workspace-main">
+            <header className="workspace-topbar">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                  <div className="soft-badge">Student Workspace</div>
+                  <h1 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                    {title}
+                  </h1>
+                  <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
+                    {subtitle}
+                  </p>
+                </div>
+                {actions ? <div className="workspace-action-group">{actions}</div> : null}
+              </div>
+            </header>
+
+            <main className="mt-6">{children}</main>
           </div>
-        </header>
-
-        <section className="hero-panel mt-6 overflow-hidden px-6 py-8 sm:px-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="soft-badge">Student Workspace</div>
-              <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-                {title}
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-100/85 sm:text-base">
-                {subtitle}
-              </p>
-            </div>
-            {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
-          </div>
-        </section>
-
-        <main className="mt-6">{children}</main>
+        </div>
       </div>
     </div>
   );

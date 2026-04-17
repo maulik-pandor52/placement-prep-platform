@@ -7,13 +7,19 @@ export default function ProtectedRoute({
 }) {
   const token = localStorage.getItem("token");
   const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  let user = null;
+
+  try {
+    user = storedUser ? JSON.parse(storedUser) : null;
+  } catch {
+    user = null;
+  }
 
   if (!token) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  if (requireAdmin && user?.role !== "admin") {
+  if (requireAdmin && user?.role && user.role !== "admin") {
     return <Navigate to="/dashboard" replace />;
   }
 

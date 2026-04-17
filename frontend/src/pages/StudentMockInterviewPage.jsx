@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import StudentLayout from "../components/StudentLayout";
+import { interviewService } from "../services/interviewService";
 
 const interviewDefaults = {
   company: "Infosys",
@@ -45,10 +45,8 @@ export default function StudentMockInterviewPage() {
       return;
     }
 
-    axios
-      .get("http://localhost:5000/api/interview/history", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    interviewService
+      .getHistory()
       .then((res) => setHistory(res.data || []))
       .catch(() => setError("Could not load interview history."))
       .finally(() => setLoading(false));
@@ -240,7 +238,7 @@ export default function StudentMockInterviewPage() {
 
     setUploadingClip(true);
     try {
-      const res = await fetch("http://localhost:5000/api/interview/upload", {
+      const res = await fetch(interviewService.uploadUrl(), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -331,10 +329,7 @@ export default function StudentMockInterviewPage() {
       setGenerating(true);
       setError("");
       setReport(null);
-      const res = await axios.get("http://localhost:5000/api/interview/questions", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: form,
-      });
+      const res = await interviewService.getQuestions(form);
 
       const nextQuestions = res.data?.questions || [];
       setQuestions(nextQuestions);
@@ -402,23 +397,19 @@ export default function StudentMockInterviewPage() {
       saveCurrentTiming();
       setSubmitting(true);
       setError("");
-      const res = await axios.post(
-        "http://localhost:5000/api/interview/sessions",
-        {
-          ...form,
-          interviewMode: cameraReady ? "video" : "text",
-          answers,
-          videoSummary: {
-            cameraEnabled: cameraReady,
-            recordingsCount: answers.filter((item) => item.usedCamera).length,
-            totalRecordedSeconds: answers.reduce(
-              (sum, item) => sum + (item.videoDurationSeconds || 0),
-              0,
-            ),
-          },
+      const res = await interviewService.saveSession({
+        ...form,
+        interviewMode: cameraReady ? "video" : "text",
+        answers,
+        videoSummary: {
+          cameraEnabled: cameraReady,
+          recordingsCount: answers.filter((item) => item.usedCamera).length,
+          totalRecordedSeconds: answers.reduce(
+            (sum, item) => sum + (item.videoDurationSeconds || 0),
+            0,
+          ),
         },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      });
       setReport(res.data);
       setHistory((prev) => [res.data, ...prev]);
     } catch {
@@ -454,7 +445,7 @@ export default function StudentMockInterviewPage() {
       title="Video mock interview practice with real camera workflow."
       subtitle="Set up your target role, turn on the camera, record your answers, and review both content and delivery feedback."
       actions={
-        <div className="flex flex-wrap gap-3">
+        <>
           <button
             onClick={startCamera}
             disabled={cameraReady || cameraLoading}
@@ -465,7 +456,7 @@ export default function StudentMockInterviewPage() {
           <button onClick={generateQuestions} className="primary-btn">
             {generating ? "Generating..." : "Generate Questions"}
           </button>
-        </div>
+        </>
       }
     >
       {error ? (
@@ -474,7 +465,7 @@ export default function StudentMockInterviewPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
+      <div className="grid gap-6 2xl:grid-cols-[1.18fr_0.82fr]">
         <section className="section-panel">
           <h2 className="panel-title">Interview Setup</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
@@ -483,7 +474,7 @@ export default function StudentMockInterviewPage() {
             <Field label="Focus Skill" value={form.skill} onChange={(e) => setForm((prev) => ({ ...prev, skill: e.target.value }))} />
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+          <div className="mt-6 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
             <div className="overflow-hidden rounded-[28px] border border-slate-100 bg-slate-950">
               <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3 text-sm text-slate-300">
                 <span>{cameraReady ? "Live interview preview" : "Camera preview"}</span>
@@ -508,7 +499,7 @@ export default function StudentMockInterviewPage() {
               </div>
             </div>
 
-            <div className="student-tint">
+            <div className="student-tint h-full">
               <div className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">
                 Interview Controls
               </div>
@@ -528,11 +519,14 @@ export default function StudentMockInterviewPage() {
                   Stop Camera
                 </button>
               </div>
-              <div className="mt-5 space-y-3 text-sm text-slate-200">
-                <div>Question timer: {timeLeft}s</div>
-                <div>Completion: {completion}%</div>
-                <div>Mode: {cameraReady ? "Video interview" : "Text fallback"}</div>
-                <div>Clip upload: {uploadingClip ? "Uploading..." : "Idle"}</div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                <MiniStat label="Question timer" value={`${timeLeft}s`} />
+                <MiniStat label="Completion" value={`${completion}%`} />
+                <MiniStat
+                  label="Mode"
+                  value={cameraReady ? "Video interview" : "Text fallback"}
+                />
+                <MiniStat label="Clip upload" value={uploadingClip ? "Uploading..." : "Idle"} />
               </div>
             </div>
           </div>
@@ -655,7 +649,7 @@ export default function StudentMockInterviewPage() {
                 Complete an interview round to see your content score, delivery score, and improvement tips.
               </p>
             ) : (
-              <>
+              <div className="panel-scroll mt-5 pr-2">
                 <div className="mt-5 grid gap-4 sm:grid-cols-3">
                   <ScoreCard label="Overall" value={`${report.overallScore}%`} tone="teal" />
                   <ScoreCard label="Content" value={`${report.contentScore || 0}%`} tone="sky" />
@@ -672,13 +666,13 @@ export default function StudentMockInterviewPage() {
                 <FeedbackList title="Strengths" items={report.strengths} tone="green" />
                 <FeedbackList title="Improve Next" items={report.improvements} tone="orange" />
                 <FeedbackList title="Tips" items={report.tips} tone="blue" />
-              </>
+              </div>
             )}
           </section>
 
           <section className="section-panel">
             <h2 className="panel-title">Interview History</h2>
-            <div className="mt-5 space-y-3">
+            <div className="panel-scroll mt-5 space-y-3 pr-2">
               {history.length ? (
                 history.slice(0, 5).map((item) => (
                   <div key={item._id} className="student-card">

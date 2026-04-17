@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import PrepEasyLogo from "../components/PrepEasyLogo";
+import { authService } from "../services/authService";
 
 export default function StudentRegisterPage() {
   const navigate = useNavigate();
@@ -42,18 +42,11 @@ export default function StudentRegisterPage() {
     }
 
     try {
-      await axios.post(
-        "http://localhost:5000/api/auth/register",
-        {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 8000,
-        },
-      );
+      await authService.studentRegister({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
       navigate("/login", { replace: true });
     } catch (err) {
@@ -69,30 +62,24 @@ export default function StudentRegisterPage() {
   };
 
   return (
-    <div className="app-canvas">
-      <div className="page-wrap">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-          <section className="section-panel p-8 sm:p-10">
-            <PrepEasyLogo
-              subtitle="Create your account and start building momentum."
-              compact
-            />
-            <div className="soft-badge">Create Account</div>
-            <h1 className="mt-4 text-3xl font-black text-slate-100">
-              Start your placement preparation in a workspace built for momentum.
-            </h1>
-            <p className="mt-3 text-sm leading-7 text-slate-400">
-              Create your student account to take quizzes, receive performance
-              reports, unlock rewards, and prepare for company-specific tests.
-            </p>
+    <div className="auth-shell">
+      <div className="auth-wrap lg:grid-cols-[1.04fr_0.96fr]">
+        <section className="auth-form-panel">
+          <div className="soft-badge">Create Account</div>
+          <h1 className="mt-5 text-3xl font-black text-slate-50">
+            Build your PrepEasy student workspace
+          </h1>
+          <p className="mt-3 text-sm leading-7 text-slate-400">
+            Create your student account to start quizzes, unlock reports, track activity streaks, and prepare for company-specific rounds.
+          </p>
 
-            {error ? (
-              <div className="mt-6 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-                {error}
-              </div>
-            ) : null}
+          {error ? (
+            <div className="mt-6 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {error}
+            </div>
+          ) : null}
 
-            <form onSubmit={handleRegister} className="mt-8 space-y-5">
+          <form onSubmit={handleRegister} className="mt-8 space-y-5">
               <Field
                 label="Full Name"
                 name="name"
@@ -140,56 +127,55 @@ export default function StudentRegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`primary-btn w-full ${
-                  loading ? "cursor-wait opacity-70" : ""
-                }`}
+                className={`primary-btn w-full ${loading ? "cursor-wait opacity-70" : ""}`}
               >
-                {loading ? "Creating account..." : "Sign Up"}
+                {loading ? "Creating account..." : "Create Student Account"}
               </button>
             </form>
 
-            <div className="mt-6 space-y-3 text-sm text-slate-400">
-              <p>
-                Already have an account?{" "}
-                <Link to="/login" className="font-semibold text-cyan-300 hover:underline">
-                  Sign in
-                </Link>
-              </p>
-              <p>
-                Admin onboarding?{" "}
-                <Link to="/admin/register" className="font-semibold text-slate-100 hover:underline">
-                  Open admin signup
-                </Link>
-              </p>
-            </div>
-          </section>
+          <div className="mt-8 fade-divider" />
 
-          <section className="hero-panel px-8 py-10 sm:px-10 sm:py-12">
-            <PrepEasyLogo
-              subtitle="Placement practice that feels organized, motivating, and clear."
-              textClassName="text-white"
-              subtextClassName="text-slate-100/80"
+          <div className="mt-6 space-y-3 text-sm text-slate-400">
+            <p>
+              Already have an account?{" "}
+              <Link to="/login" className="font-semibold text-cyan-300 hover:underline">
+                Sign in
+              </Link>
+            </p>
+            <p>
+              Admin onboarding?{" "}
+              <Link to="/admin/register" className="font-semibold text-slate-100 hover:underline">
+                Open admin signup
+              </Link>
+            </p>
+          </div>
+        </section>
+
+        <section className="auth-feature-panel">
+          <PrepEasyLogo
+            subtitle="A cleaner frontend for placement practice, tracking, and interview preparation."
+            textClassName="text-white"
+            subtextClassName="text-slate-100/80"
+          />
+          <div className="mt-6 soft-badge">Why Students Stay</div>
+          <h2 className="mt-5 text-5xl font-black leading-tight text-white">
+            One modern workspace for practice, insight, and company readiness.
+          </h2>
+          <div className="mt-8 space-y-4">
+            <InsightCard
+              title="Reports that guide action"
+              text="Understand what improved, what dropped, and what to focus on next without guessing."
             />
-            <div className="soft-badge">Why Students Like It</div>
-            <h2 className="mt-5 text-5xl font-black leading-tight">
-              One platform for practice, tracking, and interview preparation.
-            </h2>
-            <div className="mt-8 space-y-4">
-              <InsightCard
-                title="Reports that make sense"
-                text="Understand where you are strong, where you need work, and what to practice next."
-              />
-              <InsightCard
-                title="Target company tests"
-                text="Move from general preparation into company-focused practice with less confusion."
-              />
-              <InsightCard
-                title="Progress that feels motivating"
-                text="Use points, badges, and history to stay consistent instead of starting over every time."
-              />
-            </div>
-          </section>
-        </div>
+            <InsightCard
+              title="Company-focused movement"
+              text="Shift from general preparation into targeted tests with a clearer next-step path."
+            />
+            <InsightCard
+              title="Progress that feels visible"
+              text="Keep badges, streaks, attempts, and readiness snapshots in one consistent product flow."
+            />
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -206,7 +192,7 @@ function Field({ label, ...props }) {
 
 function InsightCard({ title, text }) {
   return (
-    <div className="rounded-[24px] border border-white/12 bg-white/8 p-5">
+    <div className="auth-mini-card">
       <div className="text-lg font-semibold text-white">{title}</div>
       <p className="mt-2 text-sm leading-7 text-slate-100/80">{text}</p>
     </div>

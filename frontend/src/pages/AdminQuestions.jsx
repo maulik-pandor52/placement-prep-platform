@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import AdminLayout from "../components/AdminLayout";
+import { adminService } from "../services/adminService";
 
 const emptyForm = {
   question: "",
@@ -31,11 +31,10 @@ export default function AdminQuestions() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const headers = { Authorization: `Bearer ${token}` };
         const [questionsRes, skillsRes, companiesRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/admin/questions", { headers }),
-          axios.get("http://localhost:5000/api/admin/skills", { headers }),
-          axios.get("http://localhost:5000/api/admin/companies", { headers }),
+          adminService.getQuestions(),
+          adminService.getSkills(),
+          adminService.getCompanies(),
         ]);
 
         setQuestions(questionsRes.data);
@@ -81,24 +80,14 @@ export default function AdminQuestions() {
         options: form.options.map((item) => item.trim()).filter(Boolean),
         tags: form.tags,
       };
-      const headers = { Authorization: `Bearer ${token}` };
-
       if (editingId) {
-        const res = await axios.put(
-          `http://localhost:5000/api/admin/questions/${editingId}`,
-          payload,
-          { headers },
-        );
+        const res = await adminService.updateQuestion(editingId, payload);
         setQuestions((prev) =>
           prev.map((item) => (item._id === editingId ? res.data : item)),
         );
         setSuccess("Question updated successfully.");
       } else {
-        const res = await axios.post(
-          "http://localhost:5000/api/admin/questions",
-          payload,
-          { headers },
-        );
+        const res = await adminService.createQuestion(payload);
         setQuestions((prev) => [res.data, ...prev]);
         setSuccess("Question created successfully.");
       }
@@ -174,9 +163,7 @@ export default function AdminQuestions() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/questions/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await adminService.deleteQuestion(id);
       setQuestions((prev) => prev.filter((item) => item._id !== id));
       if (editingId === id) {
         resetForm();
@@ -370,12 +357,13 @@ export default function AdminQuestions() {
           </form>
         </section>
 
-        <section className="admin-card p-6">
+        <section className="admin-card flex min-h-[720px] flex-col p-6">
           <h3 className="text-xl font-semibold text-white">Question Bank</h3>
           {loading ? (
             <p className="mt-4 text-slate-400">Loading questions...</p>
           ) : (
-            <div className="mt-4 space-y-4">
+            <div className="panel-scroll mt-4 flex-1 pr-2">
+              <div className="space-y-4">
               {questions.map((item) => (
                 <div key={item._id} className="admin-card-muted p-4">
                   <div className="font-medium text-white">{item.question}</div>
@@ -418,6 +406,7 @@ export default function AdminQuestions() {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </section>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import StudentLoginPage from "./pages/StudentLoginPage";
@@ -10,6 +10,7 @@ import StudentInsightsPage from "./pages/StudentInsightsPage";
 import StudentOpportunitiesPage from "./pages/StudentOpportunitiesPage";
 import StudentQuizPage from "./pages/StudentQuizPage";
 import StudentResultPage from "./pages/StudentResultPage";
+import StudentProfilePage from "./pages/StudentProfilePage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminQuestions from "./pages/AdminQuestions";
 import AdminSkills from "./pages/AdminSkills";
@@ -69,6 +70,14 @@ function App() {
           }
         />
         <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <StudentProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin"
           element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
@@ -113,17 +122,24 @@ function App() {
         <Route
           path="*"
           element={
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 text-center">
-              <h1 className="text-7xl font-bold text-gray-800 mb-4">404</h1>
-              <p className="text-2xl text-gray-600 mb-8">
-                Oops! Page not found.
-              </p>
-              <a
-                href="/dashboard"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-4 rounded-xl shadow-md transition"
-              >
-                Return to Dashboard
-              </a>
+            <div className="app-canvas">
+              <div className="page-wrap flex min-h-screen items-center justify-center">
+                <div className="section-panel max-w-xl text-center">
+                  <div className="soft-badge">PrepEasy</div>
+                  <h1 className="mt-5 text-7xl font-black text-slate-100">404</h1>
+                  <p className="mt-4 text-lg leading-8 text-slate-400">
+                    This page is not available right now. Use the workspace links below to return to the active app.
+                  </p>
+                  <div className="mt-8 flex flex-wrap justify-center gap-3">
+                    <Link to="/dashboard" className="primary-btn">
+                      Student Dashboard
+                    </Link>
+                    <Link to="/admin" className="secondary-btn">
+                      Admin Dashboard
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
           }
         />
